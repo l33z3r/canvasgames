@@ -40,17 +40,15 @@ define ["Player", "Point", "game", "Settings", "Gamevars"], (Player, Point, game
 				touchX = Gamevars.touchStartPos.x
 				touchY = Gamevars.touchStartPos.y
 
-				if playerX > touchX
+				if playerX > touchX + 10
 					Gamevars.currentPlayer.goLeft()
-				else if playerX < touchX
+				else if playerX < touchX - 10
 					Gamevars.currentPlayer.goRight()
 
-				if playerY > touchY
+				if playerY > touchY + 10
 					Gamevars.currentPlayer.goUp()
-				else if playerY < touchY
+				else if playerY < touchY - 10
 					Gamevars.currentPlayer.goDown()
-
-
 
 		render: (delta) ->
 			game.layer.clear Settings.appBGColor
