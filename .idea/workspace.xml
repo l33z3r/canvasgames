@@ -41,8 +41,8 @@
       <file leaf-file-name="game_screen.coffee" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/cgsrc/src/coffeescripts/game_screen.coffee">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.7016575" vertical-offset="1653" max-vertical-offset="2214">
-              <caret line="113" column="82" selection-start-line="113" selection-start-column="82" selection-end-line="113" selection-end-column="82" />
+            <state vertical-scroll-proportion="0.6685083" vertical-offset="519" max-vertical-offset="2214">
+              <caret line="49" column="25" selection-start-line="49" selection-start-column="25" selection-end-line="49" selection-end-column="25" />
               <folding />
             </state>
           </provider>
@@ -535,8 +535,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/cgsrc/src/coffeescripts/game_screen.coffee">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.7016575" vertical-offset="1653" max-vertical-offset="2214">
-          <caret line="113" column="82" selection-start-line="113" selection-start-column="82" selection-end-line="113" selection-end-column="82" />
+        <state vertical-scroll-proportion="0.6685083" vertical-offset="519" max-vertical-offset="2214">
+          <caret line="49" column="25" selection-start-line="49" selection-start-column="25" selection-end-line="49" selection-end-column="25" />
           <folding />
         </state>
       </provider>

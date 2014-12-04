@@ -42,12 +42,12 @@ define ["Player", "Point", "game", "Settings", "Gamevars"], (Player, Point, game
 
 				if playerX > touchX
 					Gamevars.currentPlayer.goLeft()
-				else
+				else if playerX < touchX
 					Gamevars.currentPlayer.goRight()
 
 				if playerY > touchY
 					Gamevars.currentPlayer.goUp()
-				else
+				else if playerY < touchY
 					Gamevars.currentPlayer.goDown()
 
 

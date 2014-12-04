@@ -33,12 +33,12 @@ define(["Player", "Point", "game", "Settings", "Gamevars"], function(Player, Poi
         touchY = Gamevars.touchStartPos.y;
         if (playerX > touchX) {
           Gamevars.currentPlayer.goLeft();
-        } else {
+        } else if (playerX < touchX) {
           Gamevars.currentPlayer.goRight();
         }
         if (playerY > touchY) {
           return Gamevars.currentPlayer.goUp();
-        } else {
+        } else if (playerY < touchY) {
           return Gamevars.currentPlayer.goDown();
         }
       }
