@@ -3,7 +3,10 @@ define(function() {
   Gamevars = {
     count: 0,
     players: [],
-    currentPlayer: null
+    currentPlayer: null,
+    touchStartPos: null,
+    touchEndPos: null,
+    isTouching: false
   };
   return Gamevars;
 });

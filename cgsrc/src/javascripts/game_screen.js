@@ -13,6 +13,7 @@ define(["Player", "Point", "game", "Settings", "Gamevars"], function(Player, Poi
     },
     ready: function() {},
     step: function(delta) {
+      var playerX, playerY, touchX, touchY;
       if (game.keyboard.keys["left"]) {
         Gamevars.currentPlayer.goLeft();
       }
@@ -23,11 +24,26 @@ define(["Player", "Point", "game", "Settings", "Gamevars"], function(Player, Poi
         Gamevars.currentPlayer.goUp();
       }
       if (game.keyboard.keys["down"]) {
-        return Gamevars.currentPlayer.goDown();
+        Gamevars.currentPlayer.goDown();
+      }
+      if (Gamevars.isTouching) {
+        playerX = Gamevars.currentPlayer.currentPosition.x;
+        playerY = Gamevars.currentPlayer.currentPosition.y;
+        touchX = Gamevars.touchStartPos.x;
+        touchY = Gamevars.touchStartPos.y;
+        if (playerX > touchX) {
+          Gamevars.currentPlayer.goLeft();
+        } else {
+          Gamevars.currentPlayer.goRight();
+        }
+        if (playerY > touchY) {
+          return Gamevars.currentPlayer.goUp();
+        } else {
+          return Gamevars.currentPlayer.goDown();
+        }
       }
     },
     render: function(delta) {
-      debugger;
       var i, player, x, y, _results;
       game.layer.clear(Settings.appBGColor);
       game.layer.fillStyle("#000").font("20px Arial").fillText("count: " + Gamevars.count, 40, 40, 200);
@@ -62,7 +78,19 @@ define(["Player", "Point", "game", "Settings", "Gamevars"], function(Player, Poi
     mouseup: function(event) {},
     mousemove: function(event) {},
     keydown: function(event) {},
-    keyup: function(event) {}
+    keyup: function(event) {},
+    touchstart: function(event) {
+      debugger;
+      Gamevars.isTouching = true;
+      Gamevars.touchStartPos = new Point(event.x, event.y);
+      return console.log("New touch start: " + Gamevars.touchStartPos.x, Gamevars.touchStartPos.y);
+    },
+    touchend: function(event) {
+      Gamevars.isTouching = false;
+      Gamevars.touchEndPos = new Point(event.x, event.y);
+      return console.log("New touch end: " + Gamevars.touchEndPos.x, Gamevars.touchEndPos.y);
+    },
+    touchmove: function(event) {}
   };
   return game_screen;
 });

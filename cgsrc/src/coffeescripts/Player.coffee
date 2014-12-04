@@ -39,7 +39,6 @@ define ["Point", "game"], (Point, game) ->
 		@currentPosition.y += 10
 		
 	Player::getImage = ->
-		debugger
 		if @orientation is "left"
 			game.images.bird_left
 		else

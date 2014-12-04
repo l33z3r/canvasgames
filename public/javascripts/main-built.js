@@ -15490,7 +15490,6 @@ define('Player',["Point", "game"], function(Point, game) {
     return this.currentPosition.y += 10;
   };
   Player.prototype.getImage = function() {
-    debugger;
     if (this.orientation === "left") {
       return game.images.bird_left;
     } else {
@@ -15536,7 +15535,10 @@ define('Gamevars',[],function() {
   Gamevars = {
     count: 0,
     players: [],
-    currentPlayer: null
+    currentPlayer: null,
+    touchStartPos: null,
+    touchEndPos: null,
+    isTouching: false
   };
   return Gamevars;
 });
@@ -15556,6 +15558,7 @@ define('game_screen',["Player", "Point", "game", "Settings", "Gamevars"], functi
     },
     ready: function() {},
     step: function(delta) {
+      var playerX, playerY, touchX, touchY;
       if (game.keyboard.keys["left"]) {
         Gamevars.currentPlayer.goLeft();
       }
@@ -15566,11 +15569,26 @@ define('game_screen',["Player", "Point", "game", "Settings", "Gamevars"], functi
         Gamevars.currentPlayer.goUp();
       }
       if (game.keyboard.keys["down"]) {
-        return Gamevars.currentPlayer.goDown();
+        Gamevars.currentPlayer.goDown();
+      }
+      if (Gamevars.isTouching) {
+        playerX = Gamevars.currentPlayer.currentPosition.x;
+        playerY = Gamevars.currentPlayer.currentPosition.y;
+        touchX = Gamevars.touchStartPos.x;
+        touchY = Gamevars.touchStartPos.y;
+        if (playerX > touchX) {
+          Gamevars.currentPlayer.goLeft();
+        } else {
+          Gamevars.currentPlayer.goRight();
+        }
+        if (playerY > touchY) {
+          return Gamevars.currentPlayer.goUp();
+        } else {
+          return Gamevars.currentPlayer.goDown();
+        }
       }
     },
     render: function(delta) {
-      debugger;
       var i, player, x, y, _results;
       game.layer.clear(Settings.appBGColor);
       game.layer.fillStyle("#000").font("20px Arial").fillText("count: " + Gamevars.count, 40, 40, 200);
@@ -15605,7 +15623,19 @@ define('game_screen',["Player", "Point", "game", "Settings", "Gamevars"], functi
     mouseup: function(event) {},
     mousemove: function(event) {},
     keydown: function(event) {},
-    keyup: function(event) {}
+    keyup: function(event) {},
+    touchstart: function(event) {
+      debugger;
+      Gamevars.isTouching = true;
+      Gamevars.touchStartPos = new Point(event.x, event.y);
+      return console.log("New touch start: " + Gamevars.touchStartPos.x, Gamevars.touchStartPos.y);
+    },
+    touchend: function(event) {
+      Gamevars.isTouching = false;
+      Gamevars.touchEndPos = new Point(event.x, event.y);
+      return console.log("New touch end: " + Gamevars.touchEndPos.x, Gamevars.touchEndPos.y);
+    },
+    touchmove: function(event) {}
   };
   return game_screen;
 });

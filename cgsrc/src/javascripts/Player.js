@@ -32,7 +32,6 @@ define(["Point", "game"], function(Point, game) {
     return this.currentPosition.y += 10;
   };
   Player.prototype.getImage = function() {
-    debugger;
     if (this.orientation === "left") {
       return game.images.bird_left;
     } else {

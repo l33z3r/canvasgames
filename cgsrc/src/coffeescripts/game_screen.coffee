@@ -30,11 +30,29 @@ define ["Player", "Point", "game", "Settings", "Gamevars"], (Player, Point, game
 				Gamevars.currentPlayer.goUp()
 			
 			if game.keyboard.keys["down"]
-				Gamevars.currentPlayer.goDown() 
+				Gamevars.currentPlayer.goDown()
+
+			if Gamevars.isTouching
+				#move the player towards the touchstart coord
+				playerX = Gamevars.currentPlayer.currentPosition.x
+				playerY = Gamevars.currentPlayer.currentPosition.y
+
+				touchX = Gamevars.touchStartPos.x
+				touchY = Gamevars.touchStartPos.y
+
+				if playerX > touchX
+					Gamevars.currentPlayer.goLeft()
+				else
+					Gamevars.currentPlayer.goRight()
+
+				if playerY > touchY
+					Gamevars.currentPlayer.goUp()
+				else
+					Gamevars.currentPlayer.goDown()
+
+
 
 		render: (delta) ->
-			debugger
-
 			game.layer.clear Settings.appBGColor
 			game.layer.fillStyle("#000").font("20px Arial").fillText "count: " + Gamevars.count, 40, 40, 200
 			
@@ -83,5 +101,18 @@ define ["Player", "Point", "game", "Settings", "Gamevars"], (Player, Point, game
 		keydown: (event) ->
 
 		keyup: (event) ->
+
+		touchstart: (event) ->
+			debugger
+			Gamevars.isTouching = true
+			Gamevars.touchStartPos = new Point(event.x, event.y)
+			console.log("New touch start: " + Gamevars.touchStartPos.x, Gamevars.touchStartPos.y)
+
+		touchend: (event) ->
+			Gamevars.isTouching = false
+			Gamevars.touchEndPos = new Point(event.x, event.y)
+			console.log("New touch end: " + Gamevars.touchEndPos.x, Gamevars.touchEndPos.y)
+
+		touchmove: (event) ->
 
 	return game_screen
