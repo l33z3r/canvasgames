@@ -1,0 +1,17 @@
+development:
+  adapter: postgresql
+  encoding: unicode
+  database: canvasgames
+  host: localhost
+  pool: 5
+  username: cg
+  password: cg
+
+test:
+  adapter: postgresql
+  encoding: unicode
+  host: localhost
+  database: canvasgames
+  pool: 5
+  username: cg
+  password: cg

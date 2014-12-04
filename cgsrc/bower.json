@@ -1,0 +1,25 @@
+{
+  "name": "grunt_tut",
+  "version": "0.0.1",
+  "authors": [
+    "Lee Farrell <lee.farrell@clavisinsight.com>"
+  ],
+  "main": "main.js",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "requirejs": "~2.1.15",
+    "pusher": "~2.2.3",
+    "backbone": "~1.1.2",
+    "jquery": "~2.1.1"
+  },
+  "devDependencies": {
+    "requirejs": "~2.1.15"
+  }
+}

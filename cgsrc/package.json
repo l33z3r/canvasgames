@@ -1,0 +1,28 @@
+{
+  "name": "3D-canvas",
+  "description": "3D-canvas",
+  "version": "0.0.1",
+  "homepage": "",
+  "author": {
+    "name": "Lee Farrell",
+    "url": ""
+  },
+  "engines": {
+    "node": ">= 0.10.0"
+  },
+  "devDependencies": {
+    "grunt": "~0.4.5",
+    "grunt-contrib-jshint": "~0.10.0",
+    "grunt-contrib-watch": "~0.6.1",
+    "grunt-contrib-qunit": "~0.5.2",
+    "grunt-contrib-uglify": "~0.5.0",
+    "grunt-contrib-requirejs": "~0.4.4",
+    "grunt-contrib-connect": "~0.9.0",
+    "grunt-contrib-coffee": "~0.12.0",
+    "grunt-contrib-sass": "~0.8.1",
+    "grunt-contrib-copy": "~0.7.0"
+  },
+  "dependencies": {
+    "grunt-haml2html": "~0.3.0"
+  }
+}
