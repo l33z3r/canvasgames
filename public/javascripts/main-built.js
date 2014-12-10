@@ -9309,7 +9309,12 @@ var b=1;Pusher.auth_callbacks={};Pusher.authorizers={ajax:function(b,a){var d;d=
 c=!0}catch(g){a(!0,"JSON returned from webapp was invalid, yet status code was 200. Data was: "+d.responseText)}c&&a(!1,b)}else Pusher.warn("Couldn't get auth info from your webapp",d.status),a(!0,d.status)};d.send(this.composeQuery(b));return d},jsonp:function(c,a){void 0!==this.authOptions.headers&&Pusher.warn("Warn","To send headers with the auth request, you must use AJAX, rather than JSONP.");var d=b.toString();b++;var h=Pusher.Util.getDocument(),f=h.createElement("script");Pusher.auth_callbacks[d]=
 function(b){a(!1,b)};f.src=this.options.authEndpoint+"?callback="+encodeURIComponent("Pusher.auth_callbacks['"+d+"']")+"&"+this.composeQuery(c);d=h.getElementsByTagName("head")[0]||h.documentElement;d.insertBefore(f,d.firstChild)}}}).call(this);
 
-define("pusher", function(){});
+define("pusher", (function (global) {
+    return function () {
+        var ret, fn;
+        return ret || global.Pusher;
+    };
+}(this)));
 
 //     Underscore.js 1.7.0
 //     http://underscorejs.org
@@ -15442,9 +15447,29 @@ define("playground", ["canvasquery"], (function (global) {
     };
 }(this)));
 
-define('game',["require", "playground"], function(require, playground) {
-  var game;
+define('Settings',[],function() {
+  var Settings;
+  Settings = {
+    playerWidth: 100,
+    playerHeight: 100,
+    appBGColor: "#7EC0EE",
+    maxPlayerAccel: 1000.0,
+    maxPlayerSpeed: 800.0,
+    accelFilteringFactor: 0.75,
+    gameWidth: 1600,
+    gameHeight: 900
+  };
+  return Settings;
+});
+
+define('game',["require", "playground", "Settings"], function(require, playground, Settings) {
+  var game, gameContainer;
+  gameContainer = $('#game_container').get(0);
+  debugger;
   game = playground({
+    width: Settings.gameWidth,
+    height: Settings.gameHeight,
+    scaleToFit: true,
     create: function() {
       this.loadImages("bird_left");
       return this.loadImages("bird_right");
@@ -15465,7 +15490,11 @@ define('Player',["Point", "game"], function(Point, game) {
     this.colour = colour;
     this.lastTick = 0;
     this.duration = 1;
-    return this.orientation = "right";
+    this.orientation = "right";
+    this.accelX = 0;
+    this.accelY = 0;
+    this.speedX = 0;
+    return this.speedY = 0;
   };
   Player.prototype.getNextSprite = function() {
     var delta, frame, offset, sprite;
@@ -15499,16 +15528,6 @@ define('Player',["Point", "game"], function(Point, game) {
   return Player;
 });
 
-define('Settings',[],function() {
-  var Settings;
-  Settings = {
-    playerWidth: 100,
-    playerHeight: 100,
-    appBGColor: "#7EC0EE"
-  };
-  return Settings;
-});
-
 define('main_menu',["require", "game", "Settings"], function(require, game, Settings) {
   var main_menu;
   main_menu = {
@@ -15538,7 +15557,16 @@ define('Gamevars',[],function() {
     currentPlayer: null,
     touchStartPos: null,
     touchEndPos: null,
-    isTouching: false
+    isTouching: false,
+    accelerometerX: 0,
+    accelerometerY: 0,
+    accelerometerZ: 0,
+    accelerationX: 0,
+    accelerationY: 0,
+    accelerationZ: 0,
+    currentReadAccelerationX: 0,
+    currentReadAccelerationY: 0,
+    currentReadAccelerationZ: 0
   };
   return Gamevars;
 });
@@ -15548,9 +15576,9 @@ define('game_screen',["Player", "Point", "game", "Settings", "Gamevars"], functi
   game_screen = {
     enter: function() {
       var i, numPlayers;
+      numPlayers = 1;
       i = 0;
-      numPlayers = 10;
-      while (i < numPlayers - 1) {
+      while (i < numPlayers) {
         Gamevars.players.push(new Player("Player " + (i + 1), new Point(i * 100, 100), "#FF0000"));
         i++;
       }
@@ -15558,54 +15586,74 @@ define('game_screen',["Player", "Point", "game", "Settings", "Gamevars"], functi
     },
     ready: function() {},
     step: function(delta) {
-      var playerX, playerY, touchX, touchY;
-      if (game.keyboard.keys["left"]) {
-        Gamevars.currentPlayer.goLeft();
-      }
+      var currentPlayer, maxPlayerAccel, maxPlayerSpeed, newX, newY, usingLandscape;
+      currentPlayer = Gamevars.currentPlayer;
+      maxPlayerAccel = Settings.maxPlayerAccel;
+      maxPlayerSpeed = Settings.maxPlayerSpeed;
+      Gamevars.accelerometerX = (Gamevars.currentReadAccelerationX * Settings.accelFilteringFactor) + Gamevars.accelerometerX * (1.0 - Settings.accelFilteringFactor);
+      Gamevars.accelerometerY = (Gamevars.currentReadAccelerationY * Settings.accelFilteringFactor) + Gamevars.accelerometerY * (1.0 - Settings.accelFilteringFactor);
+      Gamevars.accelerometerZ = (Gamevars.currentReadAccelerationZ * Settings.accelFilteringFactor) + Gamevars.accelerometerZ * (1.0 - Settings.accelFilteringFactor);
       if (game.keyboard.keys["right"]) {
-        Gamevars.currentPlayer.goRight();
+        currentPlayer.accelX = maxPlayerAccel;
+      } else if (game.keyboard.keys["left"]) {
+        currentPlayer.accelX = -maxPlayerAccel;
       }
       if (game.keyboard.keys["up"]) {
-        Gamevars.currentPlayer.goUp();
+        currentPlayer.accelY = -maxPlayerAccel;
+      } else if (game.keyboard.keys["down"]) {
+        currentPlayer.accelY = maxPlayerAccel;
       }
-      if (game.keyboard.keys["down"]) {
-        Gamevars.currentPlayer.goDown();
-      }
-      if (Gamevars.isTouching) {
-        playerX = Gamevars.currentPlayer.currentPosition.x;
-        playerY = Gamevars.currentPlayer.currentPosition.y;
-        touchX = Gamevars.touchStartPos.x;
-        touchY = Gamevars.touchStartPos.y;
-        if (playerX > touchX + 10) {
-          Gamevars.currentPlayer.goLeft();
-        } else if (playerX < touchX - 10) {
-          Gamevars.currentPlayer.goRight();
+      usingLandscape = true;
+      if (usingLandscape) {
+        if (Gamevars.accelerometerY > 0.05) {
+          currentPlayer.accelX = maxPlayerAccel;
+        } else if (Gamevars.accelerometerY < -0.05) {
+          currentPlayer.accelX = -maxPlayerAccel;
         }
-        if (playerY > touchY + 10) {
-          return Gamevars.currentPlayer.goUp();
-        } else if (playerY < touchY - 10) {
-          return Gamevars.currentPlayer.goDown();
+        if (Gamevars.accelerometerX < -0.05) {
+          currentPlayer.accelY = -maxPlayerAccel;
+        } else if (Gamevars.accelerometerX > 0.05) {
+          currentPlayer.accelY = maxPlayerAccel;
+        }
+      } else {
+        if (Gamevars.accelerometerY > 0.05) {
+          currentPlayer.accelY = maxPlayerAccel;
+        } else if (Gamevars.accelerometerY < -0.05) {
+          currentPlayer.accelY = -maxPlayerAccel;
+        }
+        if (Gamevars.accelerometerX < -0.05) {
+          currentPlayer.accelX = maxPlayerAccel;
+        } else if (Gamevars.accelerometerX > 0.05) {
+          currentPlayer.accelX = -maxPlayerAccel;
         }
       }
+      currentPlayer.speedX += currentPlayer.accelX * delta;
+      currentPlayer.speedY += currentPlayer.accelY * delta;
+      currentPlayer.speedX = Math.max(Math.min(currentPlayer.speedX, Settings.maxPlayerSpeed), -Settings.maxPlayerSpeed);
+      currentPlayer.speedY = Math.max(Math.min(currentPlayer.speedY, Settings.maxPlayerSpeed), -Settings.maxPlayerSpeed);
+      newX = currentPlayer.currentPosition.x + (currentPlayer.speedX * delta);
+      newY = currentPlayer.currentPosition.y + (currentPlayer.speedY * delta);
+      newX = Math.min(Settings.gameWidth - Settings.playerWidth, Math.max(newX, 0));
+      newY = Math.min(Settings.gameHeight - Settings.playerHeight, Math.max(newY, 0));
+      currentPlayer.currentPosition.x = newX;
+      return currentPlayer.currentPosition.y = newY;
     },
     render: function(delta) {
       var i, player, x, y, _results;
       game.layer.clear(Settings.appBGColor);
-      game.layer.fillStyle("#000").font("20px Arial").fillText("count: " + Gamevars.count, 40, 40, 200);
       i = 0;
       _results = [];
       while (i < Gamevars.players.length) {
         player = Gamevars.players[i];
         x = player.currentPosition.x;
         y = player.currentPosition.y;
-        game.layer.fillStyle("#000").font("12px Arial").fillText(player.name, x - 10, y - 10, 100);
         game.layer.drawRegion(player.getImage(), player.getNextSprite(), x, y);
         _results.push(i++);
       }
       return _results;
     },
     mousedown: function(event) {
-      var i, mouseX, mouseY, player, playerPos;
+      var eventData, i, mouseX, mouseY, player, playerPos;
       i = 0;
       while (i < Gamevars.players.length) {
         mouseX = event.x;
@@ -15618,31 +15666,80 @@ define('game_screen',["Player", "Point", "game", "Settings", "Gamevars"], functi
         }
         i++;
       }
-      return Gamevars.count++;
+      eventData = {
+        channel_name: "bird_game",
+        event_name: "click",
+        json_data: {
+          x: mouseX,
+          y: mouseY
+        }
+      };
+      return $.post("push_data", eventData);
     },
     mouseup: function(event) {},
     mousemove: function(event) {},
     keydown: function(event) {},
     keyup: function(event) {},
-    touchstart: function(event) {
-      debugger;
-      Gamevars.isTouching = true;
-      Gamevars.touchStartPos = new Point(event.x, event.y);
-      return console.log("New touch start: " + Gamevars.touchStartPos.x, Gamevars.touchStartPos.y);
-    },
-    touchend: function(event) {
-      Gamevars.isTouching = false;
-      Gamevars.touchEndPos = new Point(event.x, event.y);
-      return console.log("New touch end: " + Gamevars.touchEndPos.x, Gamevars.touchEndPos.y);
-    },
+    touchstart: function(event) {},
+    touchend: function(event) {},
     touchmove: function(event) {}
   };
   return game_screen;
 });
 
-define('app',["jquery", "pusher", "backbone", "message", "Point", "Player", "canvasquery", "playground", "game", "main_menu", "game_screen"], function($, pusher, Backbone, message, Point, Player, cq, playground, game, main_menu, game_screen) {
+define('Motion',["Gamevars"], function(Gamevars) {
+  var Motion;
+  Motion = function() {
+    return this.watchID = null;
+  };
+  Motion.prototype.startWatching = function() {
+    var handleMotionEvent, onError, onSuccess, options;
+    alert("start watch");
+    if (navigator.accelerometer != null) {
+      onSuccess = function(acceleration) {
+        Gamevars.currentReadAccelerationX = acceleration.x;
+        Gamevars.currentReadAccelerationY = acceleration.y;
+        return Gamevars.currentReadAccelerationZ = acceleration.z;
+      };
+      onError = function() {
+        return alert("onError!");
+      };
+      options = {
+        frequency: 300
+      };
+      this.watchID = navigator.accelerometer.watchAcceleration(onSuccess, onError, options);
+    } else {
+      handleMotionEvent = function(event) {
+        Gamevars.currentReadAccelerationX = event.acceleration.x;
+        Gamevars.currentReadAccelerationY = event.acceleration.y;
+        return Gamevars.currentReadAccelerationZ = event.acceleration.z;
+      };
+      window.addEventListener("devicemotion", handleMotionEvent, false);
+    }
+    return alert("here");
+  };
+  return Motion;
+});
+
+define('app',["require", "jquery", "pusher", "backbone", "message", "Point", "Player", "canvasquery", "playground", "game", "main_menu", "game_screen", "Motion"], function(require, $, Pusher, Backbone, message, Point, Player, cq, playground, game, main_menu, game_screen, Motion) {
+  var channel, pusher;
   game.main_menu = main_menu;
-  return game.game_screen = game_screen;
+  game.game_screen = game_screen;
+  Pusher.log = function(message) {
+    if (window.console && window.console.log) {
+      return window.console.log(message);
+    }
+  };
+  pusher = new Pusher("1d4635759ded7a473634");
+  channel = pusher.subscribe("test_channel");
+  channel.bind("my_event", function(data) {
+    return alert(data.message);
+  });
+  return window.setTimeout((function(_this) {
+    return function() {
+      return new Motion().startWatching();
+    };
+  })(this), 5000);
 });
 
 require(["app"], function() {

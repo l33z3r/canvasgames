@@ -14,7 +14,7 @@ module.exports = function(grunt) {
     haml: {                           
       dist: {                            
         files: {                         
-          '../public/index.html': 'src/index.haml'
+          '../public/game.html': 'src/index.haml'
         }
       }
     },
@@ -115,14 +115,14 @@ module.exports = function(grunt) {
     watch: {
       doreload: {
         options: {
-          livereload: true,
+          livereload: true
         },
         files: ['../public/**/*']
       },
       dist: {
         files: ['src/index.haml', 'src/coffeescripts/**/*.coffee', 'src/sass/**/*.sass'],
         tasks: ['dist'] 
-      },
+      }
       // gruntfile: {
       //   files: '<%= jshint.gruntfile.src %>',
       //   tasks: ['jshint:gruntfile']
@@ -148,9 +148,21 @@ module.exports = function(grunt) {
 
           // flattens results to a single level
           //{expand: true, flatten: true, src: ['path/**'], dest: 'dest/', filter: 'isFile'},
-        ],
+        ]
       },
-    },
+
+      phonegap: {
+        files: [
+          //{expand: true, cwd: '../public/', src: ['**'], dest: '../../canvasgames_phonegap/'},
+
+          {expand: true, cwd: '../public/', src: 'game.html', dest: '../../canvasgames_phonegap/', rename: function(src, dest) { return "../../canvasgames_phonegap/index.html" }},
+          {expand: true, cwd: '../public/', src: 'images/', dest: '../../canvasgames_phonegap/'},
+          {expand: true, cwd: '../public/', src: 'javascripts/', dest: '../../canvasgames_phonegap/'},
+          {expand: true, cwd: '../public/', src: 'stylesheets/', dest: '../../canvasgames_phonegap/'},
+          {expand: true, cwd: 'src', src: 'config.xml', dest: '../../canvasgames_phonegap/'}
+        ]
+      }
+    }
   });
 
   // These plugins provide necessary tasks.

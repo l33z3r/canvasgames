@@ -1,6 +1,11 @@
 !!!
 %html
   %head
-    %script{"data-main" => "javascripts/main-built", :src => "/javascripts/lib/require.js"}
+    %title
+      Welcome to CanvasGames
+    %script{"data-main" => "javascripts/main-built", :src => "javascripts/lib/require.js"}
+    %script{:src => "cordova.js"}
     %link{:href => "stylesheets/style.css", :rel => "stylesheet"}
+
   %body
+    %div{:id => "game_container"}

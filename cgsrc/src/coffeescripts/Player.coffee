@@ -1,12 +1,16 @@
 define ["Point", "game"], (Point, game) ->
 	Player = (name, initialPosition, colour) ->
-	  @name = name
-	  @initialPosition = initialPosition
-	  @currentPosition = new Point(initialPosition.x, initialPosition.y)
-	  @colour = colour
-	  @lastTick = 0
-	  @duration = 1
-	  @orientation = "right"
+		@name = name
+		@initialPosition = initialPosition
+		@currentPosition = new Point(initialPosition.x, initialPosition.y)
+		@colour = colour
+		@lastTick = 0
+		@duration = 1
+		@orientation = "right"
+		@accelX = 0
+		@accelY = 0
+		@speedX = 0
+		@speedY = 0
 
 	Player::getNextSprite = ->
 	  delta = (Date.now() - @lastTick) / 1000

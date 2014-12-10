@@ -3,9 +3,9 @@ define(["Player", "Point", "game", "Settings", "Gamevars"], function(Player, Poi
   game_screen = {
     enter: function() {
       var i, numPlayers;
+      numPlayers = 1;
       i = 0;
-      numPlayers = 10;
-      while (i < numPlayers - 1) {
+      while (i < numPlayers) {
         Gamevars.players.push(new Player("Player " + (i + 1), new Point(i * 100, 100), "#FF0000"));
         i++;
       }
@@ -13,54 +13,74 @@ define(["Player", "Point", "game", "Settings", "Gamevars"], function(Player, Poi
     },
     ready: function() {},
     step: function(delta) {
-      var playerX, playerY, touchX, touchY;
-      if (game.keyboard.keys["left"]) {
-        Gamevars.currentPlayer.goLeft();
-      }
+      var currentPlayer, maxPlayerAccel, maxPlayerSpeed, newX, newY, usingLandscape;
+      currentPlayer = Gamevars.currentPlayer;
+      maxPlayerAccel = Settings.maxPlayerAccel;
+      maxPlayerSpeed = Settings.maxPlayerSpeed;
+      Gamevars.accelerometerX = (Gamevars.currentReadAccelerationX * Settings.accelFilteringFactor) + Gamevars.accelerometerX * (1.0 - Settings.accelFilteringFactor);
+      Gamevars.accelerometerY = (Gamevars.currentReadAccelerationY * Settings.accelFilteringFactor) + Gamevars.accelerometerY * (1.0 - Settings.accelFilteringFactor);
+      Gamevars.accelerometerZ = (Gamevars.currentReadAccelerationZ * Settings.accelFilteringFactor) + Gamevars.accelerometerZ * (1.0 - Settings.accelFilteringFactor);
       if (game.keyboard.keys["right"]) {
-        Gamevars.currentPlayer.goRight();
+        currentPlayer.accelX = maxPlayerAccel;
+      } else if (game.keyboard.keys["left"]) {
+        currentPlayer.accelX = -maxPlayerAccel;
       }
       if (game.keyboard.keys["up"]) {
-        Gamevars.currentPlayer.goUp();
+        currentPlayer.accelY = -maxPlayerAccel;
+      } else if (game.keyboard.keys["down"]) {
+        currentPlayer.accelY = maxPlayerAccel;
       }
-      if (game.keyboard.keys["down"]) {
-        Gamevars.currentPlayer.goDown();
-      }
-      if (Gamevars.isTouching) {
-        playerX = Gamevars.currentPlayer.currentPosition.x;
-        playerY = Gamevars.currentPlayer.currentPosition.y;
-        touchX = Gamevars.touchStartPos.x;
-        touchY = Gamevars.touchStartPos.y;
-        if (playerX > touchX + 10) {
-          Gamevars.currentPlayer.goLeft();
-        } else if (playerX < touchX - 10) {
-          Gamevars.currentPlayer.goRight();
+      usingLandscape = true;
+      if (usingLandscape) {
+        if (Gamevars.accelerometerY > 0.05) {
+          currentPlayer.accelX = maxPlayerAccel;
+        } else if (Gamevars.accelerometerY < -0.05) {
+          currentPlayer.accelX = -maxPlayerAccel;
         }
-        if (playerY > touchY + 10) {
-          return Gamevars.currentPlayer.goUp();
-        } else if (playerY < touchY - 10) {
-          return Gamevars.currentPlayer.goDown();
+        if (Gamevars.accelerometerX < -0.05) {
+          currentPlayer.accelY = -maxPlayerAccel;
+        } else if (Gamevars.accelerometerX > 0.05) {
+          currentPlayer.accelY = maxPlayerAccel;
+        }
+      } else {
+        if (Gamevars.accelerometerY > 0.05) {
+          currentPlayer.accelY = maxPlayerAccel;
+        } else if (Gamevars.accelerometerY < -0.05) {
+          currentPlayer.accelY = -maxPlayerAccel;
+        }
+        if (Gamevars.accelerometerX < -0.05) {
+          currentPlayer.accelX = maxPlayerAccel;
+        } else if (Gamevars.accelerometerX > 0.05) {
+          currentPlayer.accelX = -maxPlayerAccel;
         }
       }
+      currentPlayer.speedX += currentPlayer.accelX * delta;
+      currentPlayer.speedY += currentPlayer.accelY * delta;
+      currentPlayer.speedX = Math.max(Math.min(currentPlayer.speedX, Settings.maxPlayerSpeed), -Settings.maxPlayerSpeed);
+      currentPlayer.speedY = Math.max(Math.min(currentPlayer.speedY, Settings.maxPlayerSpeed), -Settings.maxPlayerSpeed);
+      newX = currentPlayer.currentPosition.x + (currentPlayer.speedX * delta);
+      newY = currentPlayer.currentPosition.y + (currentPlayer.speedY * delta);
+      newX = Math.min(Settings.gameWidth - Settings.playerWidth, Math.max(newX, 0));
+      newY = Math.min(Settings.gameHeight - Settings.playerHeight, Math.max(newY, 0));
+      currentPlayer.currentPosition.x = newX;
+      return currentPlayer.currentPosition.y = newY;
     },
     render: function(delta) {
       var i, player, x, y, _results;
       game.layer.clear(Settings.appBGColor);
-      game.layer.fillStyle("#000").font("20px Arial").fillText("count: " + Gamevars.count, 40, 40, 200);
       i = 0;
       _results = [];
       while (i < Gamevars.players.length) {
         player = Gamevars.players[i];
         x = player.currentPosition.x;
         y = player.currentPosition.y;
-        game.layer.fillStyle("#000").font("12px Arial").fillText(player.name, x - 10, y - 10, 100);
         game.layer.drawRegion(player.getImage(), player.getNextSprite(), x, y);
         _results.push(i++);
       }
       return _results;
     },
     mousedown: function(event) {
-      var i, mouseX, mouseY, player, playerPos;
+      var eventData, i, mouseX, mouseY, player, playerPos;
       i = 0;
       while (i < Gamevars.players.length) {
         mouseX = event.x;
@@ -73,23 +93,22 @@ define(["Player", "Point", "game", "Settings", "Gamevars"], function(Player, Poi
         }
         i++;
       }
-      return Gamevars.count++;
+      eventData = {
+        channel_name: "bird_game",
+        event_name: "click",
+        json_data: {
+          x: mouseX,
+          y: mouseY
+        }
+      };
+      return $.post("push_data", eventData);
     },
     mouseup: function(event) {},
     mousemove: function(event) {},
     keydown: function(event) {},
     keyup: function(event) {},
-    touchstart: function(event) {
-      debugger;
-      Gamevars.isTouching = true;
-      Gamevars.touchStartPos = new Point(event.x, event.y);
-      return console.log("New touch start: " + Gamevars.touchStartPos.x, Gamevars.touchStartPos.y);
-    },
-    touchend: function(event) {
-      Gamevars.isTouching = false;
-      Gamevars.touchEndPos = new Point(event.x, event.y);
-      return console.log("New touch end: " + Gamevars.touchEndPos.x, Gamevars.touchEndPos.y);
-    },
+    touchstart: function(event) {},
+    touchend: function(event) {},
     touchmove: function(event) {}
   };
   return game_screen;

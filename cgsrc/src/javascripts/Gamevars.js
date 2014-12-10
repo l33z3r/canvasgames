@@ -6,7 +6,16 @@ define(function() {
     currentPlayer: null,
     touchStartPos: null,
     touchEndPos: null,
-    isTouching: false
+    isTouching: false,
+    accelerometerX: 0,
+    accelerometerY: 0,
+    accelerometerZ: 0,
+    accelerationX: 0,
+    accelerationY: 0,
+    accelerationZ: 0,
+    currentReadAccelerationX: 0,
+    currentReadAccelerationY: 0,
+    currentReadAccelerationZ: 0
   };
   return Gamevars;
 });

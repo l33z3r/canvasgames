@@ -1,4 +1,12 @@
 Rails.application.routes.draw do
+  get 'home' => 'home#index'
+
+  root 'home#index'
+
+  post 'push_data' => 'home#push_data'
+
+  get 'game' => 'home#game'
+
   # The priority is based upon order of creation: first created -> highest priority.
   # See how all your routes lay out with "rake routes".
 

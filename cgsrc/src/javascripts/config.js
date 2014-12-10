@@ -13,6 +13,9 @@ require.config({
     },
     canvasquery: {
       exports: "cq"
+    },
+    pusher: {
+      exports: "Pusher"
     }
   },
   paths: {

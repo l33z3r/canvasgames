@@ -1,16 +1,18 @@
 require.config 
 	shim: 
-	  	backbone:
-	  		deps: ["jquery"]
-	  		exports: "Backbone"
-	  	Player:
-	  		deps: ["Point"]
-	  	playground:
-	  		deps: ["canvasquery"]
-	  		exports: "playground"
-	  	canvasquery: 
-	  		exports: "cq"
-	  		
+		backbone:
+			deps: ["jquery"]
+			exports: "Backbone"
+		Player:
+			deps: ["Point"]
+		playground:
+			deps: ["canvasquery"]
+			exports: "playground"
+		canvasquery:
+			exports: "cq"
+		pusher:
+			exports: "Pusher"
+
 	paths:  		
 	 	jquery: "bower_lib/jquery/dist/jquery"
 	 	underscore: "bower_lib/underscore/underscore"

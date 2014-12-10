@@ -7,7 +7,11 @@ define(["Point", "game"], function(Point, game) {
     this.colour = colour;
     this.lastTick = 0;
     this.duration = 1;
-    return this.orientation = "right";
+    this.orientation = "right";
+    this.accelX = 0;
+    this.accelY = 0;
+    this.speedX = 0;
+    return this.speedY = 0;
   };
   Player.prototype.getNextSprite = function() {
     var delta, frame, offset, sprite;
