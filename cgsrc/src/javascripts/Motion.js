@@ -4,7 +4,7 @@ define(["Gamevars"], function(Gamevars) {
     return this.watchID = null;
   };
   Motion.prototype.startWatching = function() {
-    var handleMotionEvent, onError, onSuccess, options;
+    var handleOrientationEvent, onError, onSuccess, options;
     alert("start watch");
     if (navigator.accelerometer != null) {
       onSuccess = function(acceleration) {
@@ -20,12 +20,11 @@ define(["Gamevars"], function(Gamevars) {
       };
       this.watchID = navigator.accelerometer.watchAcceleration(onSuccess, onError, options);
     } else {
-      handleMotionEvent = function(event) {
-        Gamevars.currentReadAccelerationX = event.acceleration.x;
-        Gamevars.currentReadAccelerationY = event.acceleration.y;
-        return Gamevars.currentReadAccelerationZ = event.acceleration.z;
+      handleOrientationEvent = function(event) {
+        Gamevars.currentReadAccelerationX = event.gamma;
+        return Gamevars.currentReadAccelerationY = event.beta;
       };
-      window.addEventListener("devicemotion", handleMotionEvent, false);
+      window.addEventListener("deviceorientation", handleOrientationEvent, false);
     }
     return alert("here");
   };
