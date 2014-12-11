@@ -12341,23 +12341,6 @@ define("pusher", (function (global) {
 
 }));
 
-define('message',[],function() {
-  return {
-    showMessage: function(message) {
-      return console.log(message);
-    }
-  };
-});
-
-define('Point',[],function() {
-  var Point;
-  Point = function(x, y) {
-    this.x = x;
-    return this.y = y;
-  };
-  return Point;
-});
-
 /*     
   Canvas Query 1.0.1
   http://canvasquery.org
@@ -15465,20 +15448,56 @@ define('Settings',[],function() {
 define('game',["require", "playground", "Settings"], function(require, playground, Settings) {
   var game, gameContainer;
   gameContainer = $('#game_container').get(0);
-  debugger;
   game = playground({
     width: Settings.gameWidth,
     height: Settings.gameHeight,
     scaleToFit: true,
-    create: function() {
-      this.loadImages("bird_left");
-      return this.loadImages("bird_right");
-    },
+    create: function() {},
     ready: function() {
       return this.setState(require("main_menu"));
     }
   });
   return game;
+});
+
+define('main_menu',["require", "game", "Settings"], function(require, game, Settings) {
+  var main_menu;
+  main_menu = {
+    create: function() {},
+    ready: function() {},
+    step: function(delta) {},
+    render: function(delta) {
+      game.layer.clear(Settings.appBGColor);
+      return game.layer.fillStyle("#000").font("64px Arial").fillText("Click The Mouse To Play!!!", 200, 200);
+    },
+    mousedown: function(event) {
+      var cancelFullScreen, doc, docEl, requestFullScreen;
+      game.setState(require("bird_game/game_screen"));
+      doc = window.document;
+      docEl = doc.documentElement;
+      requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+      cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
+      if (!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) {
+        return requestFullScreen.call(docEl);
+      } else {
+        return cancelFullScreen.call(doc);
+      }
+    },
+    mouseup: function(event) {},
+    mousemove: function(event) {},
+    keydown: function(event) {},
+    keyup: function(event) {}
+  };
+  return main_menu;
+});
+
+define('Point',[],function() {
+  var Point;
+  Point = function(x, y) {
+    this.x = x;
+    return this.y = y;
+  };
+  return Point;
 });
 
 define('Player',["Point", "game"], function(Point, game) {
@@ -15528,37 +15547,6 @@ define('Player',["Point", "game"], function(Point, game) {
   return Player;
 });
 
-define('main_menu',["require", "game", "Settings"], function(require, game, Settings) {
-  var main_menu;
-  main_menu = {
-    create: function() {},
-    ready: function() {},
-    step: function(delta) {},
-    render: function(delta) {
-      game.layer.clear(Settings.appBGColor);
-      return game.layer.fillStyle("#000").font("64px Arial").fillText("Click The Mouse To Play!!!", 200, 200);
-    },
-    mousedown: function(event) {
-      var cancelFullScreen, doc, docEl, requestFullScreen;
-      game.setState(require("game_screen"));
-      doc = window.document;
-      docEl = doc.documentElement;
-      requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
-      cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
-      if (!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) {
-        return requestFullScreen.call(docEl);
-      } else {
-        return cancelFullScreen.call(doc);
-      }
-    },
-    mouseup: function(event) {},
-    mousemove: function(event) {},
-    keydown: function(event) {},
-    keyup: function(event) {}
-  };
-  return main_menu;
-});
-
 define('Gamevars',[],function() {
   var Gamevars;
   Gamevars = {
@@ -15584,11 +15572,62 @@ define('Gamevars',[],function() {
   return Gamevars;
 });
 
-define('game_screen',["Player", "Point", "game", "Settings", "Gamevars"], function(Player, Point, game, Settings, Gamevars) {
-  var game_screen;
-  game_screen = {
+define('util/PusherManager',["pusher"], function(Pusher) {
+  var PusherManager;
+  PusherManager = function() {
+    Pusher.log = function(message) {
+      if (window.console && window.console.log) {
+        return window.console.log(message);
+      }
+    };
+    this.pusher = new Pusher("1d4635759ded7a473634");
+  };
+  return new PusherManager();
+});
+
+define('Motion',["Gamevars"], function(Gamevars) {
+  var Motion;
+  Motion = function() {
+    return this.watchID = null;
+  };
+  Motion.prototype.startWatching = function() {
+    var handleOrientationEvent, onError, onSuccess, options;
+    if (navigator.accelerometer != null) {
+      onSuccess = function(acceleration) {
+        Gamevars.currentReadAccelerationX = acceleration.x;
+        Gamevars.currentReadAccelerationY = acceleration.y;
+        return Gamevars.currentReadAccelerationZ = acceleration.z;
+      };
+      onError = function() {
+        return alert("onError!");
+      };
+      options = {
+        frequency: 300
+      };
+      return this.watchID = navigator.accelerometer.watchAcceleration(onSuccess, onError, options);
+    } else {
+      handleOrientationEvent = function(event) {
+        Gamevars.currentReadAccelerationX = -event.gamma;
+        return Gamevars.currentReadAccelerationY = event.beta;
+      };
+      return window.addEventListener("deviceorientation", handleOrientationEvent, false);
+    }
+  };
+  return Motion;
+});
+
+define('bird_game/game_screen',["Player", "Point", "../game", "Settings", "Gamevars", "../util/PusherManager", "Motion"], function(Player, Point, game, Settings, Gamevars, PusherManager, Motion) {
+  var bird_game_screen;
+  bird_game_screen = {
     enter: function() {
-      var i, numPlayers;
+      var bird_channel, i, numPlayers;
+      game.loadImages("bird_left");
+      game.loadImages("bird_right");
+      bird_channel = PusherManager.pusher.subscribe("bird_game");
+      bird_channel.bind("line_drawn", function(data) {
+        return Gamevars.nextRemoteUserLine = JSON.parse(data.line_data);
+      });
+      new Motion().startWatching();
       numPlayers = 1;
       i = 0;
       while (i < numPlayers) {
@@ -15727,63 +15766,12 @@ define('game_screen',["Player", "Point", "game", "Settings", "Gamevars"], functi
     touchend: function(event) {},
     touchmove: function(event) {}
   };
-  return game_screen;
+  return bird_game_screen;
 });
 
-define('Motion',["Gamevars"], function(Gamevars) {
-  var Motion;
-  Motion = function() {
-    return this.watchID = null;
-  };
-  Motion.prototype.startWatching = function() {
-    var handleOrientationEvent, onError, onSuccess, options;
-    if (navigator.accelerometer != null) {
-      onSuccess = function(acceleration) {
-        Gamevars.currentReadAccelerationX = acceleration.x;
-        Gamevars.currentReadAccelerationY = acceleration.y;
-        return Gamevars.currentReadAccelerationZ = acceleration.z;
-      };
-      onError = function() {
-        return alert("onError!");
-      };
-      options = {
-        frequency: 300
-      };
-      return this.watchID = navigator.accelerometer.watchAcceleration(onSuccess, onError, options);
-    } else {
-      handleOrientationEvent = function(event) {
-        Gamevars.currentReadAccelerationX = -event.gamma;
-        return Gamevars.currentReadAccelerationY = event.beta;
-      };
-      return window.addEventListener("deviceorientation", handleOrientationEvent, false);
-    }
-  };
-  return Motion;
-});
-
-define('app',["require", "jquery", "pusher", "backbone", "message", "Point", "Player", "canvasquery", "playground", "game", "main_menu", "game_screen", "Motion", "Gamevars"], function(require, $, Pusher, Backbone, message, Point, Player, cq, playground, game, main_menu, game_screen, Motion, Gamevars) {
-  var bird_channel, channel, pusher;
+define('app',["require", "jquery", "pusher", "backbone", "canvasquery", "playground", "game", "main_menu", "bird_game/game_screen", "util/PusherManager"], function(require, $, Pusher, Backbone, cq, playground, game, main_menu, bird_game_screen, PusherManager) {
   game.main_menu = main_menu;
-  game.game_screen = game_screen;
-  Pusher.log = function(message) {
-    if (window.console && window.console.log) {
-      return window.console.log(message);
-    }
-  };
-  pusher = new Pusher("1d4635759ded7a473634");
-  channel = pusher.subscribe("test_channel");
-  channel.bind("my_event", function(data) {
-    return alert(data.message);
-  });
-  bird_channel = pusher.subscribe("bird_game");
-  bird_channel.bind("line_drawn", function(data) {
-    return Gamevars.nextRemoteUserLine = JSON.parse(data.line_data);
-  });
-  return window.setTimeout((function(_this) {
-    return function() {
-      return new Motion().startWatching();
-    };
-  })(this), 2000);
+  return game.bird_game_screen = bird_game_screen;
 });
 
 require(["app"], function() {

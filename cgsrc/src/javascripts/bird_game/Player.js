@@ -1,4 +1,4 @@
-define(["Point", "game"], function(Point, game) {
+define(["Point", "../game"], function(Point, game) {
   var Player;
   Player = function(name, initialPosition, colour) {
     this.name = name;

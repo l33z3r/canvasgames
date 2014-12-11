@@ -1,8 +1,15 @@
-define(["Player", "Point", "game", "Settings", "Gamevars"], function(Player, Point, game, Settings, Gamevars) {
-  var game_screen;
-  game_screen = {
+define(["Player", "Point", "../game", "Settings", "Gamevars", "../util/PusherManager", "Motion"], function(Player, Point, game, Settings, Gamevars, PusherManager, Motion) {
+  var bird_game_screen;
+  bird_game_screen = {
     enter: function() {
-      var i, numPlayers;
+      var bird_channel, i, numPlayers;
+      game.loadImages("bird_left");
+      game.loadImages("bird_right");
+      bird_channel = PusherManager.pusher.subscribe("bird_game");
+      bird_channel.bind("line_drawn", function(data) {
+        return Gamevars.nextRemoteUserLine = JSON.parse(data.line_data);
+      });
+      new Motion().startWatching();
       numPlayers = 1;
       i = 0;
       while (i < numPlayers) {
@@ -141,5 +148,5 @@ define(["Player", "Point", "game", "Settings", "Gamevars"], function(Player, Poi
     touchend: function(event) {},
     touchmove: function(event) {}
   };
-  return game_screen;
+  return bird_game_screen;
 });

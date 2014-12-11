@@ -1,6 +1,19 @@
-define ["Player", "Point", "game", "Settings", "Gamevars"], (Player, Point, game, Settings, Gamevars) ->
-	game_screen =
+define ["Player", "Point", "../game", "Settings", "Gamevars", "../util/PusherManager", "Motion"], (Player, Point, game, Settings, Gamevars, PusherManager, Motion) ->
+	bird_game_screen =
 		enter: ->
+			#init function
+
+			game.loadImages "bird_left"
+			game.loadImages "bird_right"
+
+			bird_channel = PusherManager.pusher.subscribe("bird_game")
+
+			bird_channel.bind "line_drawn", (data) ->
+				Gamevars.nextRemoteUserLine = JSON.parse(data.line_data)
+
+			new Motion().startWatching()
+
+			#initialize num players
 			numPlayers = 1
 
 			i = 0
@@ -231,4 +244,4 @@ define ["Player", "Point", "game", "Settings", "Gamevars"], (Player, Point, game
 
 		touchmove: (event) ->
 
-	return game_screen
+	return bird_game_screen

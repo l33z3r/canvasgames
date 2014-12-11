@@ -12,7 +12,7 @@ define ["require", "game", "Settings"], (require, game, Settings) ->
 
 		mousedown: (event) ->
 
-			game.setState require("game_screen") 
+			game.setState require("bird_game/game_screen")
 
 			#request fullscreen
 			doc = window.document

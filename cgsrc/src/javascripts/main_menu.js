@@ -10,7 +10,7 @@ define(["require", "game", "Settings"], function(require, game, Settings) {
     },
     mousedown: function(event) {
       var cancelFullScreen, doc, docEl, requestFullScreen;
-      game.setState(require("game_screen"));
+      game.setState(require("bird_game/game_screen"));
       doc = window.document;
       docEl = doc.documentElement;
       requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;

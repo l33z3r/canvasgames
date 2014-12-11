@@ -1,4 +1,4 @@
-define ["Point", "game"], (Point, game) ->
+define ["Point", "../game"], (Point, game) ->
 	Player = (name, initialPosition, colour) ->
 		@name = name
 		@initialPosition = initialPosition
