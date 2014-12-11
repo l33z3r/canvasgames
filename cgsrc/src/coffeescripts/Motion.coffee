@@ -3,8 +3,6 @@ define ["Gamevars"], (Gamevars) ->
     @watchID = null
 
   Motion::startWatching = ->
-    alert("start watch")
-
     if navigator.accelerometer?
       onSuccess = (acceleration) ->
         #alert "Acceleration X: " + acceleration.x + "\n" + "Acceleration Y: " + acceleration.y + "\n" + "Acceleration Z: " + acceleration.z + "\n" + "Timestamp: " + acceleration.timestamp + "\n"
@@ -29,7 +27,5 @@ define ["Gamevars"], (Gamevars) ->
         #console.log("new x y: " + x + " " + y)
 
       window.addEventListener("deviceorientation", handleOrientationEvent, false)
-
-    alert("here")
 
   return Motion

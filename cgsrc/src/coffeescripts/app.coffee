@@ -1,5 +1,5 @@
-define ["require", "jquery", "pusher", "backbone", "message", "Point", "Player", "canvasquery", "playground", "game", "main_menu", "game_screen", "Motion"],
-(require, $, Pusher, Backbone, message, Point, Player, cq, playground, game, main_menu, game_screen, Motion) ->
+define ["require", "jquery", "pusher", "backbone", "message", "Point", "Player", "canvasquery", "playground", "game", "main_menu", "game_screen", "Motion", "Gamevars"],
+(require, $, Pusher, Backbone, message, Point, Player, cq, playground, game, main_menu, game_screen, Motion, Gamevars) ->
 	#assign the main menu and the game screen to the game
 	game.main_menu = main_menu
 	game.game_screen = game_screen
@@ -14,6 +14,11 @@ define ["require", "jquery", "pusher", "backbone", "message", "Point", "Player",
 	channel.bind "my_event", (data) ->
 		alert data.message
 
+	bird_channel = pusher.subscribe("bird_game")
+
+	bird_channel.bind "line_drawn", (data) ->
+		Gamevars.nextRemoteUserLine = JSON.parse(data.line_data)
+
 	window.setTimeout =>
 		new Motion().startWatching()
-	, 5000
+	, 2000

@@ -15576,7 +15576,10 @@ define('Gamevars',[],function() {
     accelerationZ: 0,
     currentReadAccelerationX: 0,
     currentReadAccelerationY: 0,
-    currentReadAccelerationZ: 0
+    currentReadAccelerationZ: 0,
+    currentMousemove: null,
+    userLines: [],
+    nextRemoteUserLine: null
   };
   return Gamevars;
 });
@@ -15649,18 +15652,26 @@ define('game_screen',["Player", "Point", "game", "Settings", "Gamevars"], functi
       return currentPlayer.currentPosition.y = newY;
     },
     render: function(delta) {
-      var i, player, x, y, _results;
-      game.layer.clear(Settings.appBGColor);
+      var color, i, player, x, y;
       i = 0;
-      _results = [];
       while (i < Gamevars.players.length) {
         player = Gamevars.players[i];
         x = player.currentPosition.x;
         y = player.currentPosition.y;
         game.layer.drawRegion(player.getImage(), player.getNextSprite(), x, y);
-        _results.push(i++);
+        i++;
       }
-      return _results;
+      if (Gamevars.nextRemoteUserLine != null) {
+        i = 0;
+        while (i < Gamevars.nextRemoteUserLine.length) {
+          x = Gamevars.nextRemoteUserLine[i].x;
+          y = Gamevars.nextRemoteUserLine[i].y;
+          color = "#FFF";
+          game.layer.setPixel(color, x, y);
+          i++;
+        }
+        return Gamevars.nextRemoteUserLine = null;
+      }
     },
     mousedown: function(event) {
       var eventData, i, mouseX, mouseY, player, playerPos;
@@ -15676,6 +15687,8 @@ define('game_screen',["Player", "Point", "game", "Settings", "Gamevars"], functi
         }
         i++;
       }
+      Gamevars.currentMousemove = [];
+      Gamevars.currentMousemove.push(new Point(mouseX, mouseY));
       eventData = {
         channel_name: "bird_game",
         event_name: "click",
@@ -15686,8 +15699,28 @@ define('game_screen',["Player", "Point", "game", "Settings", "Gamevars"], functi
       };
       return $.post("push_data", eventData);
     },
-    mouseup: function(event) {},
-    mousemove: function(event) {},
+    mouseup: function(event) {
+      var eventData;
+      if (Gamevars.currentMousemove != null) {
+        Gamevars.userLines.push(Gamevars.currentMousemove);
+        eventData = {
+          channel_name: "bird_game",
+          event_name: "line_drawn",
+          json_data: {
+            line_data: JSON.stringify(Gamevars.currentMousemove)
+          }
+        };
+        return $.post("push_data", eventData);
+      }
+    },
+    mousemove: function(event) {
+      var mouseX, mouseY;
+      if (game.mouse.left) {
+        mouseX = event.x;
+        mouseY = event.y;
+        return Gamevars.currentMousemove.push(new Point(mouseX, mouseY));
+      }
+    },
     keydown: function(event) {},
     keyup: function(event) {},
     touchstart: function(event) {},
@@ -15704,7 +15737,6 @@ define('Motion',["Gamevars"], function(Gamevars) {
   };
   Motion.prototype.startWatching = function() {
     var handleOrientationEvent, onError, onSuccess, options;
-    alert("start watch");
     if (navigator.accelerometer != null) {
       onSuccess = function(acceleration) {
         Gamevars.currentReadAccelerationX = acceleration.x;
@@ -15717,21 +15749,20 @@ define('Motion',["Gamevars"], function(Gamevars) {
       options = {
         frequency: 300
       };
-      this.watchID = navigator.accelerometer.watchAcceleration(onSuccess, onError, options);
+      return this.watchID = navigator.accelerometer.watchAcceleration(onSuccess, onError, options);
     } else {
       handleOrientationEvent = function(event) {
         Gamevars.currentReadAccelerationX = -event.gamma;
         return Gamevars.currentReadAccelerationY = event.beta;
       };
-      window.addEventListener("deviceorientation", handleOrientationEvent, false);
+      return window.addEventListener("deviceorientation", handleOrientationEvent, false);
     }
-    return alert("here");
   };
   return Motion;
 });
 
-define('app',["require", "jquery", "pusher", "backbone", "message", "Point", "Player", "canvasquery", "playground", "game", "main_menu", "game_screen", "Motion"], function(require, $, Pusher, Backbone, message, Point, Player, cq, playground, game, main_menu, game_screen, Motion) {
-  var channel, pusher;
+define('app',["require", "jquery", "pusher", "backbone", "message", "Point", "Player", "canvasquery", "playground", "game", "main_menu", "game_screen", "Motion", "Gamevars"], function(require, $, Pusher, Backbone, message, Point, Player, cq, playground, game, main_menu, game_screen, Motion, Gamevars) {
+  var bird_channel, channel, pusher;
   game.main_menu = main_menu;
   game.game_screen = game_screen;
   Pusher.log = function(message) {
@@ -15744,11 +15775,15 @@ define('app',["require", "jquery", "pusher", "backbone", "message", "Point", "Pl
   channel.bind("my_event", function(data) {
     return alert(data.message);
   });
+  bird_channel = pusher.subscribe("bird_game");
+  bird_channel.bind("line_drawn", function(data) {
+    return Gamevars.nextRemoteUserLine = JSON.parse(data.line_data);
+  });
   return window.setTimeout((function(_this) {
     return function() {
       return new Motion().startWatching();
     };
-  })(this), 5000);
+  })(this), 2000);
 });
 
 require(["app"], function() {

@@ -125,8 +125,9 @@ define ["Player", "Point", "game", "Settings", "Gamevars"], (Player, Point, game
 			currentPlayer.currentPosition.x = newX
 			currentPlayer.currentPosition.y = newY
 
+
 		render: (delta) ->
-			game.layer.clear Settings.appBGColor
+			#game.layer.clear Settings.appBGColor
 
 			#game.layer.fillStyle("#000").font("20px Arial").fillText "count: " + Gamevars.count, 40, 40, 200
 			
@@ -144,10 +145,26 @@ define ["Player", "Point", "game", "Settings", "Gamevars"], (Player, Point, game
 				
 				i++
 
+			#draw the next user line
+			if Gamevars.nextRemoteUserLine?
+				i = 0
+
+				while i < Gamevars.nextRemoteUserLine.length
+					x = Gamevars.nextRemoteUserLine[i].x
+					y = Gamevars.nextRemoteUserLine[i].y
+
+					color = "#FFF"
+
+					game.layer.setPixel(color, x, y)
+
+					i++
+
+				Gamevars.nextRemoteUserLine = null
+
 		mousedown: (event) ->
 			#discover which player was clicked
 			i = 0
-			
+
 			while i < Gamevars.players.length
 				mouseX = event.x
 				mouseY = event.y
@@ -163,8 +180,8 @@ define ["Player", "Point", "game", "Settings", "Gamevars"], (Player, Point, game
 
 				i++
 
-
-
+			Gamevars.currentMousemove = []
+			Gamevars.currentMousemove.push(new Point(mouseX, mouseY))
 
 #			Gamevars.count++
 
@@ -179,8 +196,24 @@ define ["Player", "Point", "game", "Settings", "Gamevars"], (Player, Point, game
 			$.post "push_data", eventData
 
 		mouseup: (event) ->
+			# add a line to the users drawn lines
+			if Gamevars.currentMousemove?
+				Gamevars.userLines.push(Gamevars.currentMousemove)
+
+				# send the line data
+				eventData =
+					channel_name: "bird_game"
+					event_name: "line_drawn"
+					json_data:
+						line_data: JSON.stringify(Gamevars.currentMousemove)
+
+				$.post "push_data", eventData
 
 		mousemove: (event) ->
+			if game.mouse.left
+				mouseX = event.x
+				mouseY = event.y
+				Gamevars.currentMousemove.push(new Point(mouseX, mouseY))
 
 		keydown: (event) ->
 
