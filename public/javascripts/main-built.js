@@ -15880,14 +15880,38 @@ define('sketch_pad_game/game_screen',["game", "Settings", "./Settings", "./Gamev
       }
     },
     mousedown: function(event) {
+      return this.processLineStart(event);
+    },
+    mouseup: function(event) {
+      return this.processLineEnd(event);
+    },
+    mousemove: function(event) {
+      if (game.mouse.left) {
+        return this.processLineProgress(event);
+      }
+    },
+    keydown: function(event) {},
+    keyup: function(event) {},
+    touchstart: function(event) {
+      return this.processLineStart(event);
+    },
+    touchend: function(event) {
+      return this.processLineEnd(event);
+    },
+    touchmove: function(event) {
+      return this.processLineProgress(event);
+    },
+    processLineStart: function(event) {
       var mouseX, mouseY;
+      console.log("LINESTART");
       mouseX = event.x;
       mouseY = event.y;
       Gamevars.currentMousemove = [];
       return Gamevars.currentMousemove.push(new Point(mouseX, mouseY));
     },
-    mouseup: function(event) {
+    processLineEnd: function(event) {
       var eventData;
+      console.log("LINEEND");
       if (Gamevars.currentMousemove != null) {
         Gamevars.userLines.push(Gamevars.currentMousemove);
         eventData = {
@@ -15900,27 +15924,15 @@ define('sketch_pad_game/game_screen',["game", "Settings", "./Settings", "./Gamev
         return $.post("push_data", eventData);
       }
     },
-    mousemove: function(event) {
+    processLineProgress: function(event) {
       var mouseX, mouseY;
-      if (game.mouse.left) {
-        if (Gamevars.currentMousemove == null) {
-          Gamevars.currentMousemove = [];
-        }
-        mouseX = event.x;
-        mouseY = event.y;
-        return Gamevars.currentMousemove.push(new Point(mouseX, mouseY));
+      console.log("LINEMOVE");
+      if (Gamevars.currentMousemove == null) {
+        Gamevars.currentMousemove = [];
       }
-    },
-    keydown: function(event) {},
-    keyup: function(event) {},
-    touchstart: function(event) {
-      return this.mousedown(event);
-    },
-    touchend: function(event) {
-      return this.mouseup(event);
-    },
-    touchmove: function(event) {
-      return this.mousemove(event);
+      mouseX = event.x;
+      mouseY = event.y;
+      return Gamevars.currentMousemove.push(new Point(mouseX, mouseY));
     }
   };
   return sketch_pad_game_screen;

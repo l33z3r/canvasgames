@@ -43,8 +43,8 @@ define ["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", ".
 
 
 
-					game.layer.context.lineTo(x, y);
-					game.layer.context.stroke();
+					game.layer.context.lineTo(x, y)
+					game.layer.context.stroke()
 
 
 					#game.layer.setPixel(color, x, y)
@@ -60,13 +60,38 @@ define ["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", ".
 				Gamevars.nextRemoteUserLine = null
 
 		mousedown: (event) ->
+			@processLineStart(event)
+
+		mouseup: (event) ->
+			@processLineEnd(event)
+
+		mousemove: (event) ->
+			if game.mouse.left
+				@processLineProgress(event)
+
+		keydown: (event) ->
+
+		keyup: (event) ->
+
+		touchstart: (event) ->
+			@processLineStart(event)
+
+		touchend: (event) ->
+			@processLineEnd(event)
+
+		touchmove: (event) ->
+			@processLineProgress(event)
+
+		processLineStart: (event) ->
+			console.log("LINESTART")
 			mouseX = event.x
 			mouseY = event.y
 
 			Gamevars.currentMousemove = []
 			Gamevars.currentMousemove.push(new Point(mouseX, mouseY))
 
-		mouseup: (event) ->
+		processLineEnd: (event) ->
+			console.log("LINEEND")
 			# add a line to the users drawn lines
 			if Gamevars.currentMousemove?
 				Gamevars.userLines.push(Gamevars.currentMousemove)
@@ -80,26 +105,13 @@ define ["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", ".
 
 				$.post "push_data", eventData
 
-		mousemove: (event) ->
-			if game.mouse.left
-				if !Gamevars.currentMousemove?
-					Gamevars.currentMousemove = []
+		processLineProgress: (event) ->
+			console.log("LINEMOVE")
+			if !Gamevars.currentMousemove?
+				Gamevars.currentMousemove = []
 
-				mouseX = event.x
-				mouseY = event.y
-				Gamevars.currentMousemove.push(new Point(mouseX, mouseY))
-
-		keydown: (event) ->
-
-		keyup: (event) ->
-
-		touchstart: (event) ->
-			@mousedown(event)
-
-		touchend: (event) ->
-			@mouseup(event)
-
-		touchmove: (event) ->
-			@mousemove(event)
+			mouseX = event.x
+			mouseY = event.y
+			Gamevars.currentMousemove.push(new Point(mouseX, mouseY))
 
 	return sketch_pad_game_screen
