@@ -15,10 +15,7 @@ define(function() {
     accelerationZ: 0,
     currentReadAccelerationX: 0,
     currentReadAccelerationY: 0,
-    currentReadAccelerationZ: 0,
-    currentMousemove: null,
-    userLines: [],
-    nextRemoteUserLine: null
+    currentReadAccelerationZ: 0
   };
   return Gamevars;
 });

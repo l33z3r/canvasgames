@@ -1,4 +1,4 @@
-define ["Point", "../game"], (Point, game) ->
+define ["./Point", "game"], (Point, game) ->
 	Player = (name, initialPosition, colour) ->
 		@name = name
 		@initialPosition = initialPosition
@@ -28,20 +28,6 @@ define ["Point", "../game"], (Point, game) ->
 	  #console.log(frame + " " + sprite);
 	  sprite
 	
-	Player::goLeft = ->
-		@currentPosition.x -= 10
-		@orientation = "left"
-
-	Player::goRight = ->
-		@currentPosition.x += 10
-		@orientation = "right"
-		
-	Player::goUp = ->
-		@currentPosition.y -= 10
-		
-	Player::goDown = ->
-		@currentPosition.y += 10
-		
 	Player::getImage = ->
 		if @orientation is "left"
 			game.images.bird_left

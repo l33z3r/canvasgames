@@ -1,4 +1,4 @@
-define ["Gamevars"], (Gamevars) ->
+define ["./Gamevars"], (Gamevars) ->
   Motion = () ->
     @watchID = null
 

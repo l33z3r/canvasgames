@@ -15433,12 +15433,7 @@ define("playground", ["canvasquery"], (function (global) {
 define('Settings',[],function() {
   var Settings;
   Settings = {
-    playerWidth: 100,
-    playerHeight: 100,
     appBGColor: "#7EC0EE",
-    maxPlayerAccel: 1000.0,
-    maxPlayerSpeed: 800.0,
-    accelFilteringFactor: 0.75,
     gameWidth: 1600,
     gameHeight: 900
   };
@@ -15590,7 +15585,7 @@ define('main_menu',["require", "game", "Settings", "util/GameMenu", "util/GameMe
   return main_menu;
 });
 
-define('Point',[],function() {
+define('bird_game/Point',[],function() {
   var Point;
   Point = function(x, y) {
     this.x = x;
@@ -15599,7 +15594,7 @@ define('Point',[],function() {
   return Point;
 });
 
-define('Player',["Point", "game"], function(Point, game) {
+define('bird_game/Player',["./Point", "game"], function(Point, game) {
   var Player;
   Player = function(name, initialPosition, colour) {
     this.name = name;
@@ -15622,20 +15617,6 @@ define('Player',["Point", "game"], function(Point, game) {
     sprite = [offset + (frame * 109), 28, 109, 100];
     return sprite;
   };
-  Player.prototype.goLeft = function() {
-    this.currentPosition.x -= 10;
-    return this.orientation = "left";
-  };
-  Player.prototype.goRight = function() {
-    this.currentPosition.x += 10;
-    return this.orientation = "right";
-  };
-  Player.prototype.goUp = function() {
-    return this.currentPosition.y -= 10;
-  };
-  Player.prototype.goDown = function() {
-    return this.currentPosition.y += 10;
-  };
   Player.prototype.getImage = function() {
     if (this.orientation === "left") {
       return game.images.bird_left;
@@ -15646,7 +15627,20 @@ define('Player',["Point", "game"], function(Point, game) {
   return Player;
 });
 
-define('Gamevars',[],function() {
+define('bird_game/Settings',[],function() {
+  var Settings;
+  Settings = {
+    playerWidth: 100,
+    playerHeight: 100,
+    appBGColor: "#7EC0EE",
+    maxPlayerAccel: 1000.0,
+    maxPlayerSpeed: 800.0,
+    accelFilteringFactor: 0.75
+  };
+  return Settings;
+});
+
+define('bird_game/Gamevars',[],function() {
   var Gamevars;
   Gamevars = {
     count: 0,
@@ -15663,10 +15657,7 @@ define('Gamevars',[],function() {
     accelerationZ: 0,
     currentReadAccelerationX: 0,
     currentReadAccelerationY: 0,
-    currentReadAccelerationZ: 0,
-    currentMousemove: null,
-    userLines: [],
-    nextRemoteUserLine: null
+    currentReadAccelerationZ: 0
   };
   return Gamevars;
 });
@@ -15684,7 +15675,7 @@ define('util/PusherManager',["pusher"], function(Pusher) {
   return new PusherManager();
 });
 
-define('Motion',["Gamevars"], function(Gamevars) {
+define('bird_game/Motion',["./Gamevars"], function(Gamevars) {
   var Motion;
   Motion = function() {
     return this.watchID = null;
@@ -15715,17 +15706,13 @@ define('Motion',["Gamevars"], function(Gamevars) {
   return Motion;
 });
 
-define('bird_game/game_screen',["Player", "Point", "../game", "Settings", "Gamevars", "../util/PusherManager", "Motion"], function(Player, Point, game, Settings, Gamevars, PusherManager, Motion) {
+define('bird_game/game_screen',["./Player", "./Point", "game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", "./Motion"], function(Player, Point, game, GlobalSettings, Settings, Gamevars, PusherManager, Motion) {
   var bird_game_screen;
   bird_game_screen = {
     enter: function() {
-      var bird_channel, i, numPlayers;
+      var i, numPlayers;
       game.loadImages("bird_left");
       game.loadImages("bird_right");
-      bird_channel = PusherManager.pusher.subscribe("bird_game");
-      bird_channel.bind("line_drawn", function(data) {
-        return Gamevars.nextRemoteUserLine = JSON.parse(data.line_data);
-      });
       new Motion().startWatching();
       numPlayers = 1;
       i = 0;
@@ -15780,40 +15767,33 @@ define('bird_game/game_screen',["Player", "Point", "../game", "Settings", "Gamev
       }
       currentPlayer.speedX += currentPlayer.accelX * delta;
       currentPlayer.speedY += currentPlayer.accelY * delta;
-      currentPlayer.speedX = Math.max(Math.min(currentPlayer.speedX, Settings.maxPlayerSpeed), -Settings.maxPlayerSpeed);
-      currentPlayer.speedY = Math.max(Math.min(currentPlayer.speedY, Settings.maxPlayerSpeed), -Settings.maxPlayerSpeed);
+      currentPlayer.speedX = Math.max(Math.min(currentPlayer.speedX, maxPlayerSpeed), -maxPlayerSpeed);
+      currentPlayer.speedY = Math.max(Math.min(currentPlayer.speedY, maxPlayerSpeed), -maxPlayerSpeed);
       newX = currentPlayer.currentPosition.x + (currentPlayer.speedX * delta);
       newY = currentPlayer.currentPosition.y + (currentPlayer.speedY * delta);
-      newX = Math.min(Settings.gameWidth - Settings.playerWidth, Math.max(newX, 0));
-      newY = Math.min(Settings.gameHeight - Settings.playerHeight, Math.max(newY, 0));
+      newX = Math.min(GlobalSettings.gameWidth - Settings.playerWidth, Math.max(newX, 0));
+      newY = Math.min(GlobalSettings.gameHeight - Settings.playerHeight, Math.max(newY, 0));
       currentPlayer.currentPosition.x = newX;
       return currentPlayer.currentPosition.y = newY;
     },
     render: function(delta) {
-      var color, i, player, x, y;
+      var i, player, x, y, _results;
+      game.layer.clear(GlobalSettings.appBGColor);
       i = 0;
+      _results = [];
       while (i < Gamevars.players.length) {
         player = Gamevars.players[i];
         x = player.currentPosition.x;
         y = player.currentPosition.y;
         game.layer.drawRegion(player.getImage(), player.getNextSprite(), x, y);
-        i++;
+        _results.push(i++);
       }
-      if (Gamevars.nextRemoteUserLine != null) {
-        i = 0;
-        while (i < Gamevars.nextRemoteUserLine.length) {
-          x = Gamevars.nextRemoteUserLine[i].x;
-          y = Gamevars.nextRemoteUserLine[i].y;
-          color = "#FFF";
-          game.layer.setPixel(color, x, y);
-          i++;
-        }
-        return Gamevars.nextRemoteUserLine = null;
-      }
+      return _results;
     },
     mousedown: function(event) {
-      var eventData, i, mouseX, mouseY, player, playerPos;
+      var i, mouseX, mouseY, player, playerPos, _results;
       i = 0;
+      _results = [];
       while (i < Gamevars.players.length) {
         mouseX = event.x;
         mouseY = event.y;
@@ -15823,42 +15803,12 @@ define('bird_game/game_screen',["Player", "Point", "../game", "Settings", "Gamev
           Gamevars.currentPlayer = player;
           break;
         }
-        i++;
+        _results.push(i++);
       }
-      Gamevars.currentMousemove = [];
-      Gamevars.currentMousemove.push(new Point(mouseX, mouseY));
-      eventData = {
-        channel_name: "bird_game",
-        event_name: "click",
-        json_data: {
-          x: mouseX,
-          y: mouseY
-        }
-      };
-      return $.post("push_data", eventData);
+      return _results;
     },
-    mouseup: function(event) {
-      var eventData;
-      if (Gamevars.currentMousemove != null) {
-        Gamevars.userLines.push(Gamevars.currentMousemove);
-        eventData = {
-          channel_name: "bird_game",
-          event_name: "line_drawn",
-          json_data: {
-            line_data: JSON.stringify(Gamevars.currentMousemove)
-          }
-        };
-        return $.post("push_data", eventData);
-      }
-    },
-    mousemove: function(event) {
-      var mouseX, mouseY;
-      if (game.mouse.left) {
-        mouseX = event.x;
-        mouseY = event.y;
-        return Gamevars.currentMousemove.push(new Point(mouseX, mouseY));
-      }
-    },
+    mouseup: function(event) {},
+    mousemove: function(event) {},
     keydown: function(event) {},
     keyup: function(event) {},
     touchstart: function(event) {},
@@ -15868,91 +15818,40 @@ define('bird_game/game_screen',["Player", "Point", "../game", "Settings", "Gamev
   return bird_game_screen;
 });
 
-define('sketch_pad_game/game_screen',["Player", "Point", "../game", "Settings", "Gamevars", "../util/PusherManager", "Motion"], function(Player, Point, game, Settings, Gamevars, PusherManager, Motion) {
-  var bird_game_screen;
-  bird_game_screen = {
+define('sketch_pad_game/Gamevars',[],function() {
+  var Gamevars;
+  Gamevars = {
+    currentMousemove: null,
+    userLines: [],
+    nextRemoteUserLine: null
+  };
+  return Gamevars;
+});
+
+define('sketch_pad_game/Point',[],function() {
+  var Point;
+  Point = function(x, y) {
+    this.x = x;
+    return this.y = y;
+  };
+  return Point;
+});
+
+define('sketch_pad_game/game_screen',["game", "Settings", "./Gamevars", "util/PusherManager", "./Point"], function(game, GlobalSettings, Gamevars, PusherManager, Point) {
+  var sketch_pad_game_screen;
+  sketch_pad_game_screen = {
     enter: function() {
-      var bird_channel, i, numPlayers;
+      var bird_channel;
       alert("hi");
-      game.loadImages("bird_left");
-      game.loadImages("bird_right");
-      bird_channel = PusherManager.pusher.subscribe("bird_game");
-      bird_channel.bind("line_drawn", function(data) {
+      bird_channel = PusherManager.pusher.subscribe("sketch_pad_game");
+      return bird_channel.bind("line_drawn", function(data) {
         return Gamevars.nextRemoteUserLine = JSON.parse(data.line_data);
       });
-      new Motion().startWatching();
-      numPlayers = 1;
-      i = 0;
-      while (i < numPlayers) {
-        Gamevars.players.push(new Player("Player " + (i + 1), new Point(i * 100, 100), "#FF0000"));
-        i++;
-      }
-      return Gamevars.currentPlayer = Gamevars.players[0];
     },
     ready: function() {},
-    step: function(delta) {
-      var currentPlayer, maxPlayerAccel, maxPlayerSpeed, newX, newY, usingLandscape;
-      currentPlayer = Gamevars.currentPlayer;
-      maxPlayerAccel = Settings.maxPlayerAccel;
-      maxPlayerSpeed = Settings.maxPlayerSpeed;
-      Gamevars.accelerometerX = (Gamevars.currentReadAccelerationX * Settings.accelFilteringFactor) + Gamevars.accelerometerX * (1.0 - Settings.accelFilteringFactor);
-      Gamevars.accelerometerY = (Gamevars.currentReadAccelerationY * Settings.accelFilteringFactor) + Gamevars.accelerometerY * (1.0 - Settings.accelFilteringFactor);
-      Gamevars.accelerometerZ = (Gamevars.currentReadAccelerationZ * Settings.accelFilteringFactor) + Gamevars.accelerometerZ * (1.0 - Settings.accelFilteringFactor);
-      if (game.keyboard.keys["right"]) {
-        currentPlayer.accelX = maxPlayerAccel;
-      } else if (game.keyboard.keys["left"]) {
-        currentPlayer.accelX = -maxPlayerAccel;
-      }
-      if (game.keyboard.keys["up"]) {
-        currentPlayer.accelY = -maxPlayerAccel;
-      } else if (game.keyboard.keys["down"]) {
-        currentPlayer.accelY = maxPlayerAccel;
-      }
-      usingLandscape = true;
-      if (usingLandscape) {
-        if (Gamevars.accelerometerY > 0.05) {
-          currentPlayer.accelX = maxPlayerAccel;
-        } else if (Gamevars.accelerometerY < -0.05) {
-          currentPlayer.accelX = -maxPlayerAccel;
-        }
-        if (Gamevars.accelerometerX < -0.05) {
-          currentPlayer.accelY = -maxPlayerAccel;
-        } else if (Gamevars.accelerometerX > 0.05) {
-          currentPlayer.accelY = maxPlayerAccel;
-        }
-      } else {
-        if (Gamevars.accelerometerY > 0.05) {
-          currentPlayer.accelY = maxPlayerAccel;
-        } else if (Gamevars.accelerometerY < -0.05) {
-          currentPlayer.accelY = -maxPlayerAccel;
-        }
-        if (Gamevars.accelerometerX < -0.05) {
-          currentPlayer.accelX = maxPlayerAccel;
-        } else if (Gamevars.accelerometerX > 0.05) {
-          currentPlayer.accelX = -maxPlayerAccel;
-        }
-      }
-      currentPlayer.speedX += currentPlayer.accelX * delta;
-      currentPlayer.speedY += currentPlayer.accelY * delta;
-      currentPlayer.speedX = Math.max(Math.min(currentPlayer.speedX, Settings.maxPlayerSpeed), -Settings.maxPlayerSpeed);
-      currentPlayer.speedY = Math.max(Math.min(currentPlayer.speedY, Settings.maxPlayerSpeed), -Settings.maxPlayerSpeed);
-      newX = currentPlayer.currentPosition.x + (currentPlayer.speedX * delta);
-      newY = currentPlayer.currentPosition.y + (currentPlayer.speedY * delta);
-      newX = Math.min(Settings.gameWidth - Settings.playerWidth, Math.max(newX, 0));
-      newY = Math.min(Settings.gameHeight - Settings.playerHeight, Math.max(newY, 0));
-      currentPlayer.currentPosition.x = newX;
-      return currentPlayer.currentPosition.y = newY;
-    },
+    step: function(delta) {},
     render: function(delta) {
-      var color, i, player, x, y;
-      i = 0;
-      while (i < Gamevars.players.length) {
-        player = Gamevars.players[i];
-        x = player.currentPosition.x;
-        y = player.currentPosition.y;
-        game.layer.drawRegion(player.getImage(), player.getNextSprite(), x, y);
-        i++;
-      }
+      var color, i, x, y;
       if (Gamevars.nextRemoteUserLine != null) {
         i = 0;
         while (i < Gamevars.nextRemoteUserLine.length) {
@@ -15965,38 +15864,13 @@ define('sketch_pad_game/game_screen',["Player", "Point", "../game", "Settings", 
         return Gamevars.nextRemoteUserLine = null;
       }
     },
-    mousedown: function(event) {
-      var eventData, i, mouseX, mouseY, player, playerPos;
-      i = 0;
-      while (i < Gamevars.players.length) {
-        mouseX = event.x;
-        mouseY = event.y;
-        player = Gamevars.players[i];
-        playerPos = player.currentPosition;
-        if (mouseX > playerPos.x && mouseX < playerPos.x + Settings.playerWidth && mouseY > playerPos.y && mouseY < playerPos.y + Settings.playerHeight) {
-          Gamevars.currentPlayer = player;
-          break;
-        }
-        i++;
-      }
-      Gamevars.currentMousemove = [];
-      Gamevars.currentMousemove.push(new Point(mouseX, mouseY));
-      eventData = {
-        channel_name: "bird_game",
-        event_name: "click",
-        json_data: {
-          x: mouseX,
-          y: mouseY
-        }
-      };
-      return $.post("push_data", eventData);
-    },
+    mousedown: function(event) {},
     mouseup: function(event) {
       var eventData;
       if (Gamevars.currentMousemove != null) {
         Gamevars.userLines.push(Gamevars.currentMousemove);
         eventData = {
-          channel_name: "bird_game",
+          channel_name: "sketch_pad_game",
           event_name: "line_drawn",
           json_data: {
             line_data: JSON.stringify(Gamevars.currentMousemove)
@@ -16019,7 +15893,7 @@ define('sketch_pad_game/game_screen',["Player", "Point", "../game", "Settings", 
     touchend: function(event) {},
     touchmove: function(event) {}
   };
-  return bird_game_screen;
+  return sketch_pad_game_screen;
 });
 
 define('app',["require", "jquery", "pusher", "backbone", "canvasquery", "playground", "game", "main_menu", "bird_game/game_screen", "sketch_pad_game/game_screen", "util/PusherManager"], function(require, $, Pusher, Backbone, cq, playground, game, main_menu, bird_game_screen, sketch_pad_game_screen, PusherManager) {

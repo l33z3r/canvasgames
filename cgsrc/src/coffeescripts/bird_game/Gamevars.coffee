@@ -19,8 +19,4 @@ define ->
 		currentReadAccelerationY: 0
 		currentReadAccelerationZ: 0
 
-		currentMousemove: null
-		userLines: []
-		nextRemoteUserLine:null
-
 	return Gamevars

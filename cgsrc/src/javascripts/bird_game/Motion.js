@@ -1,4 +1,4 @@
-define(["Gamevars"], function(Gamevars) {
+define(["./Gamevars"], function(Gamevars) {
   var Motion;
   Motion = function() {
     return this.watchID = null;
