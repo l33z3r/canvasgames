@@ -15549,15 +15549,10 @@ define('main_menu',["require", "game", "Settings", "util/GameMenu", "util/GameMe
         }
       };
       pidgeonDashFunc = function() {
-        alert("pd");
-        game.setState(game.bird_game_screen);
-        return requestFullScreen();
+        return game.setState(game.bird_game_screen);
       };
       sketchPadFunc = function() {
-        debugger;
-        alert("sp");
-        game.setState(game.sketch_pad_game_screen);
-        return requestFullScreen();
+        return game.setState(game.sketch_pad_game_screen);
       };
       game3Func = function() {
         alert("g3");
@@ -15662,19 +15657,6 @@ define('bird_game/Gamevars',[],function() {
   return Gamevars;
 });
 
-define('util/PusherManager',["pusher"], function(Pusher) {
-  var PusherManager;
-  PusherManager = function() {
-    Pusher.log = function(message) {
-      if (window.console && window.console.log) {
-        return window.console.log(message);
-      }
-    };
-    this.pusher = new Pusher("1d4635759ded7a473634");
-  };
-  return new PusherManager();
-});
-
 define('bird_game/Motion',["./Gamevars"], function(Gamevars) {
   var Motion;
   Motion = function() {
@@ -15706,7 +15688,7 @@ define('bird_game/Motion',["./Gamevars"], function(Gamevars) {
   return Motion;
 });
 
-define('bird_game/game_screen',["./Player", "./Point", "game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", "./Motion"], function(Player, Point, game, GlobalSettings, Settings, Gamevars, PusherManager, Motion) {
+define('bird_game/game_screen',["./Player", "./Point", "game", "Settings", "./Settings", "./Gamevars", "./Motion"], function(Player, Point, game, GlobalSettings, Settings, Gamevars, Motion) {
   var bird_game_screen;
   bird_game_screen = {
     enter: function() {
@@ -15818,6 +15800,14 @@ define('bird_game/game_screen',["./Player", "./Point", "game", "Settings", "./Se
   return bird_game_screen;
 });
 
+define('sketch_pad_game/Settings',[],function() {
+  var Settings;
+  Settings = {
+    appBGColor: "#000"
+  };
+  return Settings;
+});
+
 define('sketch_pad_game/Gamevars',[],function() {
   var Gamevars;
   Gamevars = {
@@ -15826,6 +15816,19 @@ define('sketch_pad_game/Gamevars',[],function() {
     nextRemoteUserLine: null
   };
   return Gamevars;
+});
+
+define('util/PusherManager',["pusher"], function(Pusher) {
+  var PusherManager;
+  PusherManager = function() {
+    Pusher.log = function(message) {
+      if (window.console && window.console.log) {
+        return window.console.log(message);
+      }
+    };
+    this.pusher = new Pusher("1d4635759ded7a473634");
+  };
+  return new PusherManager();
 });
 
 define('sketch_pad_game/Point',[],function() {
@@ -15837,34 +15840,52 @@ define('sketch_pad_game/Point',[],function() {
   return Point;
 });
 
-define('sketch_pad_game/game_screen',["game", "Settings", "./Gamevars", "util/PusherManager", "./Point"], function(game, GlobalSettings, Gamevars, PusherManager, Point) {
+define('sketch_pad_game/game_screen',["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", "./Point"], function(game, GlobalSettings, Settings, Gamevars, PusherManager, Point) {
   var sketch_pad_game_screen;
   sketch_pad_game_screen = {
     enter: function() {
-      var bird_channel;
-      alert("hi");
-      bird_channel = PusherManager.pusher.subscribe("sketch_pad_game");
-      return bird_channel.bind("line_drawn", function(data) {
+      var sketch_pad_game_channel;
+      sketch_pad_game_channel = PusherManager.pusher.subscribe("sketch_pad_game");
+      sketch_pad_game_channel.bind("line_drawn", function(data) {
         return Gamevars.nextRemoteUserLine = JSON.parse(data.line_data);
       });
+      return this.clearCanvas = true;
     },
     ready: function() {},
     step: function(delta) {},
     render: function(delta) {
-      var color, i, x, y;
+      var i, x, y;
+      if (this.clearCanvas) {
+        game.layer.clear(Settings.appBGColor);
+        this.clearCanvas = false;
+      }
       if (Gamevars.nextRemoteUserLine != null) {
         i = 0;
         while (i < Gamevars.nextRemoteUserLine.length) {
           x = Gamevars.nextRemoteUserLine[i].x;
           y = Gamevars.nextRemoteUserLine[i].y;
-          color = "#FFF";
-          game.layer.setPixel(color, x, y);
+          game.layer.context.lineWidth = 10;
+          game.layer.context.strokeStyle = '#fff';
+          if (i === 0) {
+            game.layer.context.beginPath();
+            game.layer.context.moveTo(x, y);
+            i++;
+            continue;
+          }
+          game.layer.context.lineTo(x, y);
+          game.layer.context.stroke();
           i++;
         }
         return Gamevars.nextRemoteUserLine = null;
       }
     },
-    mousedown: function(event) {},
+    mousedown: function(event) {
+      var mouseX, mouseY;
+      mouseX = event.x;
+      mouseY = event.y;
+      Gamevars.currentMousemove = [];
+      return Gamevars.currentMousemove.push(new Point(mouseX, mouseY));
+    },
     mouseup: function(event) {
       var eventData;
       if (Gamevars.currentMousemove != null) {
@@ -15882,6 +15903,9 @@ define('sketch_pad_game/game_screen',["game", "Settings", "./Gamevars", "util/Pu
     mousemove: function(event) {
       var mouseX, mouseY;
       if (game.mouse.left) {
+        if (Gamevars.currentMousemove == null) {
+          Gamevars.currentMousemove = [];
+        }
         mouseX = event.x;
         mouseY = event.y;
         return Gamevars.currentMousemove.push(new Point(mouseX, mouseY));

@@ -33,6 +33,4 @@ define ["util/GameMenuOption"], (GameMenuOption) ->
     for item in @items
       item.checkClicked event
 
-
-
   return GameMenu

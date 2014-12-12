@@ -23,15 +23,12 @@ define ["require", "game", "Settings", "util/GameMenu", "util/GameMenuOption"], 
 					cancelFullScreen.call doc
 
 			pidgeonDashFunc = ->
-				alert("pd")
 				game.setState game.bird_game_screen
-				requestFullScreen()
+				#requestFullScreen()
 
 			sketchPadFunc = ->
-				debugger
-				alert("sp")
 				game.setState game.sketch_pad_game_screen
-				requestFullScreen()
+				#requestFullScreen()
 
 			game3Func = ->
 				alert("g3")

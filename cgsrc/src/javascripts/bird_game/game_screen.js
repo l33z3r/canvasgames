@@ -1,4 +1,4 @@
-define(["./Player", "./Point", "game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", "./Motion"], function(Player, Point, game, GlobalSettings, Settings, Gamevars, PusherManager, Motion) {
+define(["./Player", "./Point", "game", "Settings", "./Settings", "./Gamevars", "./Motion"], function(Player, Point, game, GlobalSettings, Settings, Gamevars, Motion) {
   var bird_game_screen;
   bird_game_screen = {
     enter: function() {

@@ -1,14 +1,14 @@
-define ["game", "Settings", "./Gamevars", "util/PusherManager", "./Point"]
-, (game, GlobalSettings, Gamevars, PusherManager, Point) ->
+define ["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", "./Point"]
+, (game, GlobalSettings, Settings, Gamevars, PusherManager, Point) ->
 	sketch_pad_game_screen =
 		enter: ->
 			#init function
-			alert("hi")
+			sketch_pad_game_channel = PusherManager.pusher.subscribe("sketch_pad_game")
 
-			bird_channel = PusherManager.pusher.subscribe("sketch_pad_game")
-
-			bird_channel.bind "line_drawn", (data) ->
+			sketch_pad_game_channel.bind "line_drawn", (data) ->
 				Gamevars.nextRemoteUserLine = JSON.parse(data.line_data)
+
+			@clearCanvas = true
 
 		ready: ->
 		
@@ -16,7 +16,10 @@ define ["game", "Settings", "./Gamevars", "util/PusherManager", "./Point"]
 		step: (delta) ->
 
 		render: (delta) ->
-			#game.layer.clear GlobalSettings.appBGColor
+
+			if @clearCanvas
+				game.layer.clear Settings.appBGColor
+				@clearCanvas = false
 
 			#draw the next user line
 			if Gamevars.nextRemoteUserLine?
@@ -26,15 +29,42 @@ define ["game", "Settings", "./Gamevars", "util/PusherManager", "./Point"]
 					x = Gamevars.nextRemoteUserLine[i].x
 					y = Gamevars.nextRemoteUserLine[i].y
 
-					color = "#FFF"
+					game.layer.context.lineWidth = 10
+					game.layer.context.strokeStyle = '#fff'
 
-					game.layer.setPixel(color, x, y)
+
+
+
+					if i is 0
+						game.layer.context.beginPath()
+						game.layer.context.moveTo(x, y)
+						i++
+						continue
+
+
+
+					game.layer.context.lineTo(x, y);
+					game.layer.context.stroke();
+
+
+					#game.layer.setPixel(color, x, y)
+
+
+
+
+
+
 
 					i++
 
 				Gamevars.nextRemoteUserLine = null
 
 		mousedown: (event) ->
+			mouseX = event.x
+			mouseY = event.y
+
+			Gamevars.currentMousemove = []
+			Gamevars.currentMousemove.push(new Point(mouseX, mouseY))
 
 		mouseup: (event) ->
 			# add a line to the users drawn lines
@@ -52,6 +82,9 @@ define ["game", "Settings", "./Gamevars", "util/PusherManager", "./Point"]
 
 		mousemove: (event) ->
 			if game.mouse.left
+				if !Gamevars.currentMousemove?
+					Gamevars.currentMousemove = []
+
 				mouseX = event.x
 				mouseY = event.y
 				Gamevars.currentMousemove.push(new Point(mouseX, mouseY))

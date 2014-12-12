@@ -1,5 +1,5 @@
 define ->
 	Settings =
-		appBGColor: "#7EC0EE"
+		appBGColor: "#000"
 
 	return Settings

@@ -1,5 +1,5 @@
-define ["./Player", "./Point", "game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", "./Motion"]
-, (Player, Point, game, GlobalSettings, Settings, Gamevars, PusherManager, Motion) ->
+define ["./Player", "./Point", "game", "Settings", "./Settings", "./Gamevars", "./Motion"]
+, (Player, Point, game, GlobalSettings, Settings, Gamevars, Motion) ->
 
 	bird_game_screen =
 		enter: ->

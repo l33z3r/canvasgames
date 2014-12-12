@@ -21,15 +21,10 @@ define(["require", "game", "Settings", "util/GameMenu", "util/GameMenuOption"], 
         }
       };
       pidgeonDashFunc = function() {
-        alert("pd");
-        game.setState(game.bird_game_screen);
-        return requestFullScreen();
+        return game.setState(game.bird_game_screen);
       };
       sketchPadFunc = function() {
-        debugger;
-        alert("sp");
-        game.setState(game.sketch_pad_game_screen);
-        return requestFullScreen();
+        return game.setState(game.sketch_pad_game_screen);
       };
       game3Func = function() {
         alert("g3");

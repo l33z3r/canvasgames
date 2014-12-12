@@ -1,31 +1,49 @@
-define(["game", "Settings", "./Gamevars", "util/PusherManager", "./Point"], function(game, GlobalSettings, Gamevars, PusherManager, Point) {
+define(["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", "./Point"], function(game, GlobalSettings, Settings, Gamevars, PusherManager, Point) {
   var sketch_pad_game_screen;
   sketch_pad_game_screen = {
     enter: function() {
-      var bird_channel;
-      alert("hi");
-      bird_channel = PusherManager.pusher.subscribe("sketch_pad_game");
-      return bird_channel.bind("line_drawn", function(data) {
+      var sketch_pad_game_channel;
+      sketch_pad_game_channel = PusherManager.pusher.subscribe("sketch_pad_game");
+      sketch_pad_game_channel.bind("line_drawn", function(data) {
         return Gamevars.nextRemoteUserLine = JSON.parse(data.line_data);
       });
+      return this.clearCanvas = true;
     },
     ready: function() {},
     step: function(delta) {},
     render: function(delta) {
-      var color, i, x, y;
+      var i, x, y;
+      if (this.clearCanvas) {
+        game.layer.clear(Settings.appBGColor);
+        this.clearCanvas = false;
+      }
       if (Gamevars.nextRemoteUserLine != null) {
         i = 0;
         while (i < Gamevars.nextRemoteUserLine.length) {
           x = Gamevars.nextRemoteUserLine[i].x;
           y = Gamevars.nextRemoteUserLine[i].y;
-          color = "#FFF";
-          game.layer.setPixel(color, x, y);
+          game.layer.context.lineWidth = 10;
+          game.layer.context.strokeStyle = '#fff';
+          if (i === 0) {
+            game.layer.context.beginPath();
+            game.layer.context.moveTo(x, y);
+            i++;
+            continue;
+          }
+          game.layer.context.lineTo(x, y);
+          game.layer.context.stroke();
           i++;
         }
         return Gamevars.nextRemoteUserLine = null;
       }
     },
-    mousedown: function(event) {},
+    mousedown: function(event) {
+      var mouseX, mouseY;
+      mouseX = event.x;
+      mouseY = event.y;
+      Gamevars.currentMousemove = [];
+      return Gamevars.currentMousemove.push(new Point(mouseX, mouseY));
+    },
     mouseup: function(event) {
       var eventData;
       if (Gamevars.currentMousemove != null) {
@@ -43,6 +61,9 @@ define(["game", "Settings", "./Gamevars", "util/PusherManager", "./Point"], func
     mousemove: function(event) {
       var mouseX, mouseY;
       if (game.mouse.left) {
+        if (Gamevars.currentMousemove == null) {
+          Gamevars.currentMousemove = [];
+        }
         mouseX = event.x;
         mouseY = event.y;
         return Gamevars.currentMousemove.push(new Point(mouseX, mouseY));
