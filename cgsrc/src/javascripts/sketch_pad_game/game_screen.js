@@ -54,6 +54,7 @@ define(["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", ".
       return this.processLineStart(event);
     },
     touchend: function(event) {
+      Gamevars.currentMousemove.shift();
       return this.processLineEnd(event);
     },
     touchmove: function(event) {
@@ -61,7 +62,6 @@ define(["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", ".
     },
     processLineStart: function(event) {
       var mouseX, mouseY;
-      console.log("LINESTART");
       mouseX = event.x;
       mouseY = event.y;
       Gamevars.currentMousemove = [];
@@ -69,7 +69,6 @@ define(["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", ".
     },
     processLineEnd: function(event) {
       var eventData;
-      console.log("LINEEND");
       if (Gamevars.currentMousemove != null) {
         Gamevars.userLines.push(Gamevars.currentMousemove);
         eventData = {
@@ -84,7 +83,6 @@ define(["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", ".
     },
     processLineProgress: function(event) {
       var mouseX, mouseY;
-      console.log("LINEMOVE");
       if (Gamevars.currentMousemove == null) {
         Gamevars.currentMousemove = [];
       }

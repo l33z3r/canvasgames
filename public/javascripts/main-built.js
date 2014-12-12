@@ -15896,6 +15896,7 @@ define('sketch_pad_game/game_screen',["game", "Settings", "./Settings", "./Gamev
       return this.processLineStart(event);
     },
     touchend: function(event) {
+      Gamevars.currentMousemove.shift();
       return this.processLineEnd(event);
     },
     touchmove: function(event) {
@@ -15903,7 +15904,6 @@ define('sketch_pad_game/game_screen',["game", "Settings", "./Settings", "./Gamev
     },
     processLineStart: function(event) {
       var mouseX, mouseY;
-      console.log("LINESTART");
       mouseX = event.x;
       mouseY = event.y;
       Gamevars.currentMousemove = [];
@@ -15911,7 +15911,6 @@ define('sketch_pad_game/game_screen',["game", "Settings", "./Settings", "./Gamev
     },
     processLineEnd: function(event) {
       var eventData;
-      console.log("LINEEND");
       if (Gamevars.currentMousemove != null) {
         Gamevars.userLines.push(Gamevars.currentMousemove);
         eventData = {
@@ -15926,7 +15925,6 @@ define('sketch_pad_game/game_screen',["game", "Settings", "./Settings", "./Gamev
     },
     processLineProgress: function(event) {
       var mouseX, mouseY;
-      console.log("LINEMOVE");
       if (Gamevars.currentMousemove == null) {
         Gamevars.currentMousemove = [];
       }

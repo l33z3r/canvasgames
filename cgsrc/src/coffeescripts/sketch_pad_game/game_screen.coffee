@@ -77,13 +77,16 @@ define ["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", ".
 			@processLineStart(event)
 
 		touchend: (event) ->
+			#we need to peel off the first element when touch
+			#strange behaviour
+			Gamevars.currentMousemove.shift()
+
 			@processLineEnd(event)
 
 		touchmove: (event) ->
 			@processLineProgress(event)
 
 		processLineStart: (event) ->
-			console.log("LINESTART")
 			mouseX = event.x
 			mouseY = event.y
 
@@ -91,7 +94,6 @@ define ["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", ".
 			Gamevars.currentMousemove.push(new Point(mouseX, mouseY))
 
 		processLineEnd: (event) ->
-			console.log("LINEEND")
 			# add a line to the users drawn lines
 			if Gamevars.currentMousemove?
 				Gamevars.userLines.push(Gamevars.currentMousemove)
@@ -106,7 +108,6 @@ define ["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", ".
 				$.post "push_data", eventData
 
 		processLineProgress: (event) ->
-			console.log("LINEMOVE")
 			if !Gamevars.currentMousemove?
 				Gamevars.currentMousemove = []
 
