@@ -15460,38 +15460,89 @@ define('game',["require", "playground", "Settings"], function(require, playgroun
   return game;
 });
 
-define('main_menu',["require", "game", "Settings"], function(require, game, Settings) {
+define('util/GameMenuOption',[],function() {
+  var GameMenuOption;
+  GameMenuOption = function(text, func, context) {
+    this.text = text;
+    this.func = func;
+    return this.context = context;
+  };
+  GameMenuOption.prototype.setClickBoundry = function(x, y, width, height) {
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    return this.height = height;
+  };
+  GameMenuOption.prototype.checkClicked = function(event) {
+    var clicked, mouseX, mouseY;
+    clicked = false;
+    console.log("Checking click for " + this.text);
+    mouseX = event.x;
+    mouseY = event.y;
+    if (mouseX > this.x && mouseX < this.x + this.width && mouseY > this.y && mouseY < this.y + this.height) {
+      clicked = true;
+    }
+    if (clicked) {
+      return this.func.call();
+    }
+  };
+  return GameMenuOption;
+});
+
+define('util/GameMenu',["util/GameMenuOption"], function(GameMenuOption) {
+  var GameMenu;
+  GameMenu = function(title, items, layer, x, y, width, height) {
+    this.title = title;
+    this.items = items;
+    this.heightPerItem = height / (this.items.length + 2).toFixed(2);
+    this.layer = layer;
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    return this.height = height;
+  };
+  GameMenu.prototype.render = function() {
+    var item, menuItemTopSpacing, x, y, _i, _len, _ref, _results;
+    x = this.x + (this.width / 2.0);
+    menuItemTopSpacing = this.heightPerItem / 2.0;
+    y = this.y + menuItemTopSpacing;
+    this.layer.fillStyle("#000").font("50px Arial").textAlign("center").fillText(this.title, x, y);
+    y = y + (2 * this.heightPerItem);
+    _ref = this.items;
+    _results = [];
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      item = _ref[_i];
+      item.setClickBoundry(this.x, y - menuItemTopSpacing, this.width, this.heightPerItem);
+      this.layer.fillStyle("#000").font("36px Arial").textAlign("center").fillText(item.text, x, y);
+      _results.push(y = y + this.heightPerItem);
+    }
+    return _results;
+  };
+  GameMenu.prototype.handleClickEvent = function(event) {
+    var item, _i, _len, _ref, _results;
+    _ref = this.items;
+    _results = [];
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      item = _ref[_i];
+      _results.push(item.checkClicked(event));
+    }
+    return _results;
+  };
+  return GameMenu;
+});
+
+define('main_menu',["require", "game", "Settings", "util/GameMenu", "util/GameMenuOption"], function(require, game, Settings, GameMenu, GameMenuOption) {
   var main_menu;
   main_menu = {
     create: function() {},
     ready: function() {},
     step: function(delta) {},
     render: function(delta) {
-      var textHeight, textWidth, x, y;
+      var game3Func, height, items, menuTitle, pidgeonDashFunc, requestFullScreen, sketchPadFunc, width, x, y;
       game.layer.clear(Settings.appBGColor);
-      textWidth = 200;
-      x = Settings.gameWidth / 2.0 - textWidth;
-      game.layer.fillStyle("#000").font("40px Arial").fillText("Please Choose A Game", x, 100);
-      textWidth = 250;
-      textHeight = 80;
-      x = Settings.gameWidth / 2.0 - textWidth / 2.0;
-      y = 300;
-      game.layer.fillStyle("#000").font("40px Arial").fillText("Pidgeon Dash", x, y);
-      this.game1Boundries = [x, y, textWidth, textHeight];
-      textWidth = 220;
-      x = Settings.gameWidth / 2.0 - textWidth / 2.0;
-      return game.layer.fillStyle("#000").font("40px Arial").fillText("Sketch Pad", x, 420);
-    },
-    mousedown: function(event) {
-      var cancelFullScreen, doc, docEl, height, mouseX, mouseY, requestFullScreen, width, x, y;
-      mouseX = event.x;
-      mouseY = event.y;
-      x = this.game1Boundries[0];
-      y = this.game1Boundries[1];
-      width = this.game1Boundries[2];
-      height = this.game1Boundries[3];
-      if (mouseX > x && mouseX < x + width && mouseY > y && mouseY < y + height) {
-        game.setState(require("bird_game/game_screen"));
+      items = [];
+      requestFullScreen = function() {
+        var cancelFullScreen, doc, docEl;
         doc = window.document;
         docEl = doc.documentElement;
         requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
@@ -15501,7 +15552,35 @@ define('main_menu',["require", "game", "Settings"], function(require, game, Sett
         } else {
           return cancelFullScreen.call(doc);
         }
-      }
+      };
+      pidgeonDashFunc = function() {
+        alert("pd");
+        game.setState(game.bird_game_screen);
+        return requestFullScreen();
+      };
+      sketchPadFunc = function() {
+        debugger;
+        alert("sp");
+        game.setState(game.sketch_pad_game_screen);
+        return requestFullScreen();
+      };
+      game3Func = function() {
+        alert("g3");
+        return requestFullScreen();
+      };
+      items.push(new GameMenuOption("Pidgeons Dash", pidgeonDashFunc));
+      items.push(new GameMenuOption("Sketch Pad", sketchPadFunc));
+      items.push(new GameMenuOption("Game 3", game3Func));
+      x = 0;
+      y = Settings.gameHeight / (2 * 3.0);
+      width = Settings.gameWidth;
+      height = 2 * (Settings.gameHeight / 3.0);
+      menuTitle = "Please Choose A Game";
+      this.gameMenu = new GameMenu(menuTitle, items, game.layer, x, y, width, height);
+      return this.gameMenu.render();
+    },
+    mousedown: function(event) {
+      return this.gameMenu.handleClickEvent(event);
     },
     mouseup: function(event) {},
     mousemove: function(event) {},
@@ -15789,9 +15868,164 @@ define('bird_game/game_screen',["Player", "Point", "../game", "Settings", "Gamev
   return bird_game_screen;
 });
 
-define('app',["require", "jquery", "pusher", "backbone", "canvasquery", "playground", "game", "main_menu", "bird_game/game_screen", "util/PusherManager"], function(require, $, Pusher, Backbone, cq, playground, game, main_menu, bird_game_screen, PusherManager) {
+define('sketch_pad_game/game_screen',["Player", "Point", "../game", "Settings", "Gamevars", "../util/PusherManager", "Motion"], function(Player, Point, game, Settings, Gamevars, PusherManager, Motion) {
+  var bird_game_screen;
+  bird_game_screen = {
+    enter: function() {
+      var bird_channel, i, numPlayers;
+      alert("hi");
+      game.loadImages("bird_left");
+      game.loadImages("bird_right");
+      bird_channel = PusherManager.pusher.subscribe("bird_game");
+      bird_channel.bind("line_drawn", function(data) {
+        return Gamevars.nextRemoteUserLine = JSON.parse(data.line_data);
+      });
+      new Motion().startWatching();
+      numPlayers = 1;
+      i = 0;
+      while (i < numPlayers) {
+        Gamevars.players.push(new Player("Player " + (i + 1), new Point(i * 100, 100), "#FF0000"));
+        i++;
+      }
+      return Gamevars.currentPlayer = Gamevars.players[0];
+    },
+    ready: function() {},
+    step: function(delta) {
+      var currentPlayer, maxPlayerAccel, maxPlayerSpeed, newX, newY, usingLandscape;
+      currentPlayer = Gamevars.currentPlayer;
+      maxPlayerAccel = Settings.maxPlayerAccel;
+      maxPlayerSpeed = Settings.maxPlayerSpeed;
+      Gamevars.accelerometerX = (Gamevars.currentReadAccelerationX * Settings.accelFilteringFactor) + Gamevars.accelerometerX * (1.0 - Settings.accelFilteringFactor);
+      Gamevars.accelerometerY = (Gamevars.currentReadAccelerationY * Settings.accelFilteringFactor) + Gamevars.accelerometerY * (1.0 - Settings.accelFilteringFactor);
+      Gamevars.accelerometerZ = (Gamevars.currentReadAccelerationZ * Settings.accelFilteringFactor) + Gamevars.accelerometerZ * (1.0 - Settings.accelFilteringFactor);
+      if (game.keyboard.keys["right"]) {
+        currentPlayer.accelX = maxPlayerAccel;
+      } else if (game.keyboard.keys["left"]) {
+        currentPlayer.accelX = -maxPlayerAccel;
+      }
+      if (game.keyboard.keys["up"]) {
+        currentPlayer.accelY = -maxPlayerAccel;
+      } else if (game.keyboard.keys["down"]) {
+        currentPlayer.accelY = maxPlayerAccel;
+      }
+      usingLandscape = true;
+      if (usingLandscape) {
+        if (Gamevars.accelerometerY > 0.05) {
+          currentPlayer.accelX = maxPlayerAccel;
+        } else if (Gamevars.accelerometerY < -0.05) {
+          currentPlayer.accelX = -maxPlayerAccel;
+        }
+        if (Gamevars.accelerometerX < -0.05) {
+          currentPlayer.accelY = -maxPlayerAccel;
+        } else if (Gamevars.accelerometerX > 0.05) {
+          currentPlayer.accelY = maxPlayerAccel;
+        }
+      } else {
+        if (Gamevars.accelerometerY > 0.05) {
+          currentPlayer.accelY = maxPlayerAccel;
+        } else if (Gamevars.accelerometerY < -0.05) {
+          currentPlayer.accelY = -maxPlayerAccel;
+        }
+        if (Gamevars.accelerometerX < -0.05) {
+          currentPlayer.accelX = maxPlayerAccel;
+        } else if (Gamevars.accelerometerX > 0.05) {
+          currentPlayer.accelX = -maxPlayerAccel;
+        }
+      }
+      currentPlayer.speedX += currentPlayer.accelX * delta;
+      currentPlayer.speedY += currentPlayer.accelY * delta;
+      currentPlayer.speedX = Math.max(Math.min(currentPlayer.speedX, Settings.maxPlayerSpeed), -Settings.maxPlayerSpeed);
+      currentPlayer.speedY = Math.max(Math.min(currentPlayer.speedY, Settings.maxPlayerSpeed), -Settings.maxPlayerSpeed);
+      newX = currentPlayer.currentPosition.x + (currentPlayer.speedX * delta);
+      newY = currentPlayer.currentPosition.y + (currentPlayer.speedY * delta);
+      newX = Math.min(Settings.gameWidth - Settings.playerWidth, Math.max(newX, 0));
+      newY = Math.min(Settings.gameHeight - Settings.playerHeight, Math.max(newY, 0));
+      currentPlayer.currentPosition.x = newX;
+      return currentPlayer.currentPosition.y = newY;
+    },
+    render: function(delta) {
+      var color, i, player, x, y;
+      i = 0;
+      while (i < Gamevars.players.length) {
+        player = Gamevars.players[i];
+        x = player.currentPosition.x;
+        y = player.currentPosition.y;
+        game.layer.drawRegion(player.getImage(), player.getNextSprite(), x, y);
+        i++;
+      }
+      if (Gamevars.nextRemoteUserLine != null) {
+        i = 0;
+        while (i < Gamevars.nextRemoteUserLine.length) {
+          x = Gamevars.nextRemoteUserLine[i].x;
+          y = Gamevars.nextRemoteUserLine[i].y;
+          color = "#FFF";
+          game.layer.setPixel(color, x, y);
+          i++;
+        }
+        return Gamevars.nextRemoteUserLine = null;
+      }
+    },
+    mousedown: function(event) {
+      var eventData, i, mouseX, mouseY, player, playerPos;
+      i = 0;
+      while (i < Gamevars.players.length) {
+        mouseX = event.x;
+        mouseY = event.y;
+        player = Gamevars.players[i];
+        playerPos = player.currentPosition;
+        if (mouseX > playerPos.x && mouseX < playerPos.x + Settings.playerWidth && mouseY > playerPos.y && mouseY < playerPos.y + Settings.playerHeight) {
+          Gamevars.currentPlayer = player;
+          break;
+        }
+        i++;
+      }
+      Gamevars.currentMousemove = [];
+      Gamevars.currentMousemove.push(new Point(mouseX, mouseY));
+      eventData = {
+        channel_name: "bird_game",
+        event_name: "click",
+        json_data: {
+          x: mouseX,
+          y: mouseY
+        }
+      };
+      return $.post("push_data", eventData);
+    },
+    mouseup: function(event) {
+      var eventData;
+      if (Gamevars.currentMousemove != null) {
+        Gamevars.userLines.push(Gamevars.currentMousemove);
+        eventData = {
+          channel_name: "bird_game",
+          event_name: "line_drawn",
+          json_data: {
+            line_data: JSON.stringify(Gamevars.currentMousemove)
+          }
+        };
+        return $.post("push_data", eventData);
+      }
+    },
+    mousemove: function(event) {
+      var mouseX, mouseY;
+      if (game.mouse.left) {
+        mouseX = event.x;
+        mouseY = event.y;
+        return Gamevars.currentMousemove.push(new Point(mouseX, mouseY));
+      }
+    },
+    keydown: function(event) {},
+    keyup: function(event) {},
+    touchstart: function(event) {},
+    touchend: function(event) {},
+    touchmove: function(event) {}
+  };
+  return bird_game_screen;
+});
+
+define('app',["require", "jquery", "pusher", "backbone", "canvasquery", "playground", "game", "main_menu", "bird_game/game_screen", "sketch_pad_game/game_screen", "util/PusherManager"], function(require, $, Pusher, Backbone, cq, playground, game, main_menu, bird_game_screen, sketch_pad_game_screen, PusherManager) {
   game.main_menu = main_menu;
-  return game.bird_game_screen = bird_game_screen;
+  game.bird_game_screen = bird_game_screen;
+  return game.sketch_pad_game_screen = sketch_pad_game_screen;
 });
 
 require(["app"], function() {

@@ -1,4 +1,4 @@
-define ["require", "game", "Settings"], (require, game, Settings) ->
+define ["require", "game", "Settings", "util/GameMenu", "util/GameMenuOption"], (require, game, Settings, GameMenu, GameMenuOption) ->
 	main_menu =
 		create: ->
 
@@ -9,37 +9,9 @@ define ["require", "game", "Settings"], (require, game, Settings) ->
 		render: (delta) ->
 			game.layer.clear Settings.appBGColor
 
-			textWidth = 200
-			x = Settings.gameWidth / 2.0 - textWidth
-			game.layer.fillStyle("#000").font("40px Arial").fillText "Please Choose A Game", x, 100
+			items = []
 
-			#bird game text boundry
-			textWidth = 250
-			textHeight = 80
-			x = Settings.gameWidth / 2.0 - textWidth / 2.0
-			y = 300
-			game.layer.fillStyle("#000").font("40px Arial").fillText "Pidgeon Dash", x, y
-			@game1Boundries = [x, y, textWidth, textHeight]
-
-			#bird game text boundry
-			textWidth = 220
-			x = Settings.gameWidth / 2.0 - textWidth / 2.0
-			game.layer.fillStyle("#000").font("40px Arial").fillText "Sketch Pad", x, 420
-
-		mousedown: (event) ->
-			#check which game was clicked
-			mouseX = event.x
-			mouseY = event.y
-
-			#check bird game
-			x = @game1Boundries[0]
-			y = @game1Boundries[1]
-			width = @game1Boundries[2]
-			height = @game1Boundries[3]
-
-			if mouseX > x and mouseX < x + width and mouseY > y and mouseY < y + height
-				game.setState require("bird_game/game_screen")
-
+			requestFullScreen = ->
 				#request fullscreen
 				doc = window.document
 				docEl = doc.documentElement
@@ -49,6 +21,40 @@ define ["require", "game", "Settings"], (require, game, Settings) ->
 					requestFullScreen.call docEl
 				else
 					cancelFullScreen.call doc
+
+			pidgeonDashFunc = ->
+				alert("pd")
+				game.setState game.bird_game_screen
+				requestFullScreen()
+
+			sketchPadFunc = ->
+				debugger
+				alert("sp")
+				game.setState game.sketch_pad_game_screen
+				requestFullScreen()
+
+			game3Func = ->
+				alert("g3")
+				requestFullScreen()
+
+			items.push(new GameMenuOption("Pidgeons Dash", pidgeonDashFunc))
+			items.push(new GameMenuOption("Sketch Pad", sketchPadFunc))
+			items.push(new GameMenuOption("Game 3", game3Func))
+
+			x = 0
+			y = Settings.gameHeight / (2 * 3.0)
+
+			width = Settings.gameWidth
+			height = 2 * (Settings.gameHeight / 3.0)
+
+			menuTitle = "Please Choose A Game"
+
+			@gameMenu = new GameMenu(menuTitle, items, game.layer, x, y, width, height)
+			@gameMenu.render()
+
+		mousedown: (event) ->
+			#check which game was clicked
+			@gameMenu.handleClickEvent event
 
 		mouseup: (event) ->
 
