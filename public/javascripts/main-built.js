@@ -15913,9 +15913,15 @@ define('sketch_pad_game/game_screen',["game", "Settings", "./Settings", "./Gamev
     },
     keydown: function(event) {},
     keyup: function(event) {},
-    touchstart: function(event) {},
-    touchend: function(event) {},
-    touchmove: function(event) {}
+    touchstart: function(event) {
+      return this.mousedown(event);
+    },
+    touchend: function(event) {
+      return this.mouseup(event);
+    },
+    touchmove: function(event) {
+      return this.mousemove(event);
+    }
   };
   return sketch_pad_game_screen;
 });

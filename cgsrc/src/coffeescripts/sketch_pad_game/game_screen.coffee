@@ -94,9 +94,12 @@ define ["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", ".
 		keyup: (event) ->
 
 		touchstart: (event) ->
+			@mousedown(event)
 
 		touchend: (event) ->
+			@mouseup(event)
 
 		touchmove: (event) ->
+			@mousemove(event)
 
 	return sketch_pad_game_screen
