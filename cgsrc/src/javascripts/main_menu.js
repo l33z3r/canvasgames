@@ -5,7 +5,7 @@ define(["require", "game", "Settings", "util/GameMenu", "util/GameMenuOption"], 
     ready: function() {},
     step: function(delta) {},
     render: function(delta) {
-      var game3Func, height, items, menuTitle, pidgeonDashFunc, requestFullScreen, sketchPadFunc, width, x, y;
+      var box2dFunc, height, items, menuTitle, pidgeonDashFunc, requestFullScreen, sketchPadFunc, width, x, y;
       game.layer.clear(Settings.appBGColor);
       items = [];
       requestFullScreen = function() {
@@ -26,13 +26,12 @@ define(["require", "game", "Settings", "util/GameMenu", "util/GameMenuOption"], 
       sketchPadFunc = function() {
         return game.setState(game.sketch_pad_game_screen);
       };
-      game3Func = function() {
-        alert("g3");
-        return requestFullScreen();
+      box2dFunc = function() {
+        return game.setState(game.box2d_game_screen);
       };
       items.push(new GameMenuOption("Pidgeons Dash", pidgeonDashFunc));
       items.push(new GameMenuOption("Sketch Pad", sketchPadFunc));
-      items.push(new GameMenuOption("Game 3", game3Func));
+      items.push(new GameMenuOption("Box2D", box2dFunc));
       x = 0;
       y = Settings.gameHeight / (2 * 3.0);
       width = Settings.gameWidth;

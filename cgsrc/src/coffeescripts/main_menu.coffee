@@ -30,13 +30,13 @@ define ["require", "game", "Settings", "util/GameMenu", "util/GameMenuOption"], 
 				game.setState game.sketch_pad_game_screen
 				#requestFullScreen()
 
-			game3Func = ->
-				alert("g3")
-				requestFullScreen()
+			box2dFunc = ->
+				game.setState game.box2d_game_screen
+				#requestFullScreen()
 
 			items.push(new GameMenuOption("Pidgeons Dash", pidgeonDashFunc))
 			items.push(new GameMenuOption("Sketch Pad", sketchPadFunc))
-			items.push(new GameMenuOption("Game 3", game3Func))
+			items.push(new GameMenuOption("Box2D", box2dFunc))
 
 			x = 0
 			y = Settings.gameHeight / (2 * 3.0)

@@ -16,10 +16,18 @@ require.config({
     },
     pusher: {
       exports: "Pusher"
+    },
+    box2d: {
+      exports: "Box2D"
+    },
+    stats: {
+      exports: "Stats"
     }
   },
   paths: {
     jquery: "bower_lib/jquery/dist/jquery",
+    stats: "bower_lib/stats.js/build/stats.min",
+    box2d: "bower_lib/box-2d-web/Box2dWeb-2.1.a.3.min",
     underscore: "bower_lib/underscore/underscore",
     backbone: "bower_lib/backbone/backbone",
     pusher: "bower_lib/pusher/dist/pusher.min",

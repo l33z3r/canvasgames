@@ -1,0 +1,21 @@
+{
+  "name": "box-2d-web",
+  "version": "2.1.3",
+  "description": "Mirror of the box2djs javascript engine",
+  "main": "Box2dWeb-2.1.a.3.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/web-mech/box2dweb.git"
+  },
+  "keywords": [
+    "physics",
+    "box2djs",
+    "box2dweb",
+    "engine"
+  ],
+  "author": "Mike P",
+  "license": "MIT"
+}

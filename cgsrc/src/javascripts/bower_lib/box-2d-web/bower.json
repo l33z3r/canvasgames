@@ -1,0 +1,24 @@
+{
+  "name": "box-2d-web",
+  "version": "2.1.3",
+  "homepage": "https://github.com/web-mech/box2dweb",
+  "authors": [
+    "Mike P <webmech@gmail.com>"
+  ],
+  "description": "Mirror of the box2djs javascript engine",
+  "main": "Box2dWeb-2.1.a.3.min.js",
+  "keywords": [
+    "physics",
+    "box2djs",
+    "box2dweb",
+    "engine"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
