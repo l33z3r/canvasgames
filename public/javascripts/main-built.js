@@ -16453,7 +16453,7 @@ define('box2d_game/game_screen',["game", "Settings", "./Settings", "./Gamevars",
       Gamevars.world.CreateBody(bodyDef).CreateFixture(fixDef);
       bodyDef.type = b2Body.b2_dynamicBody;
       i = 0;
-      while (i < 150) {
+      while (i < 5) {
         if (Math.random() > 0.5) {
           fixDef.shape = new b2PolygonShape;
           fixDef.shape.SetAsBox(Math.random() + 0.1, Math.random() + 0.1);
@@ -16485,11 +16485,7 @@ define('box2d_game/game_screen',["game", "Settings", "./Settings", "./Gamevars",
       return Gamevars.stats.update();
     },
     render: function(delta) {
-      var pureAlpha;
       if (this.clearCanvas) {
-        debugger;
-        pureAlpha = cq.color("rgb(0, 0, 0)");
-        pureAlpha.alpha(0);
         game.layer.clear();
         return this.clearCanvas = false;
       }
