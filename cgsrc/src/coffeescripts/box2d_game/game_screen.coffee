@@ -150,6 +150,16 @@ define ["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", "b
 			Gamevars.accelerometerY = (Gamevars.currentReadAccelerationY * Settings.accelFilteringFactor) + Gamevars.accelerometerY * (1.0 - Settings.accelFilteringFactor)
 			Gamevars.accelerometerZ = (Gamevars.currentReadAccelerationZ * Settings.accelFilteringFactor) + Gamevars.accelerometerZ * (1.0 - Settings.accelFilteringFactor)
 
+			if game.keyboard.keys["right"]
+				Gamevars.currentGravX = Settings.maxGravity
+			else if game.keyboard.keys["left"]
+				Gamevars.currentGravX = -Settings.maxGravity
+
+			if game.keyboard.keys["up"]
+				Gamevars.currentGravY = -Settings.maxGravity
+			else if game.keyboard.keys["down"]
+				Gamevars.currentGravY = Settings.maxGravity
+
 			#work out the current gravity from accelerometer
 			usingLandscape = false
 

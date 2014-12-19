@@ -16564,6 +16564,16 @@ define('box2d_game/game_screen',["game", "Settings", "./Settings", "./Gamevars",
       Gamevars.accelerometerX = (Gamevars.currentReadAccelerationX * Settings.accelFilteringFactor) + Gamevars.accelerometerX * (1.0 - Settings.accelFilteringFactor);
       Gamevars.accelerometerY = (Gamevars.currentReadAccelerationY * Settings.accelFilteringFactor) + Gamevars.accelerometerY * (1.0 - Settings.accelFilteringFactor);
       Gamevars.accelerometerZ = (Gamevars.currentReadAccelerationZ * Settings.accelFilteringFactor) + Gamevars.accelerometerZ * (1.0 - Settings.accelFilteringFactor);
+      if (game.keyboard.keys["right"]) {
+        Gamevars.currentGravX = Settings.maxGravity;
+      } else if (game.keyboard.keys["left"]) {
+        Gamevars.currentGravX = -Settings.maxGravity;
+      }
+      if (game.keyboard.keys["up"]) {
+        Gamevars.currentGravY = -Settings.maxGravity;
+      } else if (game.keyboard.keys["down"]) {
+        Gamevars.currentGravY = Settings.maxGravity;
+      }
       usingLandscape = false;
       if (usingLandscape) {
         if (Gamevars.accelerometerY > 0.05) {
