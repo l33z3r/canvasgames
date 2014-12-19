@@ -119,24 +119,24 @@ define ["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", "b
 
 			if usingLandscape
 				if Gamevars.accelerometerY > 0.05
-					Gamevars.currentGravX = Gamevars.maxGravity
+					Gamevars.currentGravX = Settings.maxGravity
 				else if Gamevars.accelerometerY < -0.05
-					Gamevars.currentGravX = -Gamevars.maxGravity
+					Gamevars.currentGravX = -Settings.maxGravity
 
 				if Gamevars.accelerometerX < -0.05
-					Gamevars.currentGravY = -Gamevars.maxGravity
+					Gamevars.currentGravY = -Settings.maxGravity
 				else if Gamevars.accelerometerX > 0.05
-					Gamevars.currentGravY = Gamevars.maxGravity
+					Gamevars.currentGravY = Settings.maxGravity
 			else
 				if Gamevars.accelerometerY > 0.05
-					Gamevars.currentGravY = Gamevars.maxGravity
+					Gamevars.currentGravY = Settings.maxGravity
 				else if Gamevars.accelerometerY < -0.05
-					Gamevars.currentGravY = -Gamevars.maxGravity
+					Gamevars.currentGravY = -Settings.maxGravity
 
 				if Gamevars.accelerometerX < -0.05
-					Gamevars.currentGravX = Gamevars.maxGravity
+					Gamevars.currentGravX = Settings.maxGravity
 				else if Gamevars.accelerometerX > 0.05
-					Gamevars.currentGravX = -Gamevars.maxGravity
+					Gamevars.currentGravX = -Settings.maxGravity
 
 			gravity = new @b2Vec2(Gamevars.currentGravX, Gamevars.currentGravY)
 			Gamevars.world.SetGravity(gravity)

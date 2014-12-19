@@ -13,6 +13,4 @@ define ->
 		currentReadAccelerationY: 0
 		currentReadAccelerationZ: 0
 
-		maxGravity: 10
-
 	return Gamevars

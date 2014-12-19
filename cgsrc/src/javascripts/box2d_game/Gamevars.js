@@ -10,8 +10,7 @@ define(function() {
     accelerometerZ: 0,
     currentReadAccelerationX: 0,
     currentReadAccelerationY: 0,
-    currentReadAccelerationZ: 0,
-    maxGravity: 10
+    currentReadAccelerationZ: 0
   };
   return Gamevars;
 });

@@ -15938,7 +15938,9 @@ define('sketch_pad_game/game_screen',["game", "Settings", "./Settings", "./Gamev
 define('box2d_game/Settings',[],function() {
   var Settings;
   Settings = {
-    appBGColor: "#000"
+    appBGColor: "#000",
+    accelFilteringFactor: 0.75,
+    maxGravity: 10
   };
   return Settings;
 });
@@ -15955,8 +15957,7 @@ define('box2d_game/Gamevars',[],function() {
     accelerometerZ: 0,
     currentReadAccelerationX: 0,
     currentReadAccelerationY: 0,
-    currentReadAccelerationZ: 0,
-    maxGravity: 10
+    currentReadAccelerationZ: 0
   };
   return Gamevars;
 });
@@ -16543,25 +16544,25 @@ define('box2d_game/game_screen',["game", "Settings", "./Settings", "./Gamevars",
       usingLandscape = true;
       if (usingLandscape) {
         if (Gamevars.accelerometerY > 0.05) {
-          Gamevars.currentGravX = Gamevars.maxGravity;
+          Gamevars.currentGravX = Settings.maxGravity;
         } else if (Gamevars.accelerometerY < -0.05) {
-          Gamevars.currentGravX = -Gamevars.maxGravity;
+          Gamevars.currentGravX = -Settings.maxGravity;
         }
         if (Gamevars.accelerometerX < -0.05) {
-          Gamevars.currentGravY = -Gamevars.maxGravity;
+          Gamevars.currentGravY = -Settings.maxGravity;
         } else if (Gamevars.accelerometerX > 0.05) {
-          Gamevars.currentGravY = Gamevars.maxGravity;
+          Gamevars.currentGravY = Settings.maxGravity;
         }
       } else {
         if (Gamevars.accelerometerY > 0.05) {
-          Gamevars.currentGravY = Gamevars.maxGravity;
+          Gamevars.currentGravY = Settings.maxGravity;
         } else if (Gamevars.accelerometerY < -0.05) {
-          Gamevars.currentGravY = -Gamevars.maxGravity;
+          Gamevars.currentGravY = -Settings.maxGravity;
         }
         if (Gamevars.accelerometerX < -0.05) {
-          Gamevars.currentGravX = Gamevars.maxGravity;
+          Gamevars.currentGravX = Settings.maxGravity;
         } else if (Gamevars.accelerometerX > 0.05) {
-          Gamevars.currentGravX = -Gamevars.maxGravity;
+          Gamevars.currentGravX = -Settings.maxGravity;
         }
       }
       gravity = new this.b2Vec2(Gamevars.currentGravX, Gamevars.currentGravY);
