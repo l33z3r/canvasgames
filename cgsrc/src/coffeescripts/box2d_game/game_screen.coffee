@@ -115,7 +115,7 @@ define ["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", "b
 			Gamevars.accelerometerZ = (Gamevars.currentReadAccelerationZ * Settings.accelFilteringFactor) + Gamevars.accelerometerZ * (1.0 - Settings.accelFilteringFactor)
 
 			#work out the current gravity from accelerometer
-			usingLandscape = true
+			usingLandscape = false
 
 			if usingLandscape
 				if Gamevars.accelerometerY > 0.05
