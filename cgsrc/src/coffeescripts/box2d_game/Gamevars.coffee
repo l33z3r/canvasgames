@@ -3,7 +3,7 @@ define ->
 		world: null
 		stats: null
 		currentGravX: 0
-		currentGravY: 10
+		currentGravY: 0
 
 		accelerometerX: 0
 		accelerometerY: 0

@@ -4,7 +4,7 @@ define(function() {
     world: null,
     stats: null,
     currentGravX: 0,
-    currentGravY: 10,
+    currentGravY: 0,
     accelerometerX: 0,
     accelerometerY: 0,
     accelerometerZ: 0,

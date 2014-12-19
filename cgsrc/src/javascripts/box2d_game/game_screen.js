@@ -54,7 +54,7 @@ define(["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", "b
       Gamevars.world.CreateBody(bodyDef).CreateFixture(fixDef);
       bodyDef.type = this.b2Body.b2_dynamicBody;
       i = 0;
-      while (i < 10) {
+      while (i < 20) {
         if (Math.random() > 0.5) {
           fixDef.shape = new this.b2PolygonShape;
           fixDef.shape.SetAsBox(Math.random() + 0.1, Math.random() + 0.1);
@@ -88,13 +88,14 @@ define(["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", "b
       listener.PostSolve = function(contact, impulse) {};
       listener.PreSolve = function(contact, oldManifold) {};
       Gamevars.world.SetContactListener(listener);
-      return setTimeout((function(_this) {
+      return setInterval((function(_this) {
         return function() {
-          var body;
-          body = _this.bodiesMap[0];
+          var body, randomIndex;
+          randomIndex = Math.floor(Math.random() * Object.keys(_this.bodiesMap).length);
+          body = _this.bodiesMap[randomIndex];
           return body.ApplyImpulse(new _this.b2Vec2(-100, -100), body.GetWorldCenter());
         };
-      })(this), 10000);
+      })(this), 5000);
     },
     ready: function() {},
     step: function(delta) {

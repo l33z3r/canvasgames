@@ -132,15 +132,17 @@ define ["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", "b
 
 			Gamevars.world.SetContactListener listener
 
-			setTimeout =>
-				body = @bodiesMap[0]
+			setInterval =>
+				randomIndex = Math.floor(Math.random() * Object.keys(@bodiesMap).length)
+				
+				body = @bodiesMap[randomIndex]
 
 #				body.ApplyImpulse(new b2Vec2(Math.cos(degrees * (Math.PI / 180)) * power,
 #						Math.sin(degrees * (Math.PI / 180)) * power),
 #					body.GetWorldCenter())
 
 				body.ApplyImpulse(new @b2Vec2(-100, -100),	body.GetWorldCenter())
-			, 10000
+			, 5000
 
 		ready: ->
 		
