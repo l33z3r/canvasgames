@@ -2,7 +2,7 @@ define(["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", "b
   var box2d_game_screen;
   box2d_game_screen = {
     enter: function() {
-      var SCALE, bodyDef, debugDraw, fixDef, gravity, i, sleepingBodies;
+      var SCALE, bodyDef, debugDraw, fixDef, gravity, i, nextBody, sleepingBodies;
       new Motion().startWatching();
       this.clearCanvas = true;
       Gamevars.stats = new Stats();
@@ -17,6 +17,7 @@ define(["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", "b
       this.b2PolygonShape = Box2D.Collision.Shapes.b2PolygonShape;
       this.b2CircleShape = Box2D.Collision.Shapes.b2CircleShape;
       this.b2DebugDraw = Box2D.Dynamics.b2DebugDraw;
+      this.bodiesMap = {};
       gravity = new this.b2Vec2(Gamevars.currentGravX, Gamevars.currentGravY);
       sleepingBodies = false;
       Gamevars.world = new this.b2World(gravity, sleepingBodies);
@@ -61,7 +62,9 @@ define(["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", "b
         }
         bodyDef.position.x = Math.random() * 25;
         bodyDef.position.y = Math.random() * 10;
-        Gamevars.world.CreateBody(bodyDef).CreateFixture(fixDef);
+        nextBody = Gamevars.world.CreateBody(bodyDef);
+        this.bodiesMap[i] = nextBody;
+        nextBody.CreateFixture(fixDef);
         ++i;
       }
       debugDraw = new this.b2DebugDraw();
@@ -70,7 +73,14 @@ define(["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", "b
       debugDraw.SetFillAlpha(0.3);
       debugDraw.SetLineThickness(1.0);
       debugDraw.SetFlags(this.b2DebugDraw.e_shapeBit | this.b2DebugDraw.e_jointBit);
-      return Gamevars.world.SetDebugDraw(debugDraw);
+      Gamevars.world.SetDebugDraw(debugDraw);
+      return setTimeout((function(_this) {
+        return function() {
+          var body;
+          body = _this.bodiesMap[0];
+          return body.ApplyImpulse(new _this.b2Vec2(-100, -100), body.GetWorldCenter());
+        };
+      })(this), 10000);
     },
     ready: function() {},
     step: function(delta) {

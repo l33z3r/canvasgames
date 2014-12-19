@@ -20,10 +20,12 @@ define ["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", "b
 			@b2CircleShape = Box2D.Collision.Shapes.b2CircleShape
 			@b2DebugDraw = Box2D.Dynamics.b2DebugDraw
 
+			@bodiesMap = {}
+
 			gravity = new @b2Vec2(Gamevars.currentGravX, Gamevars.currentGravY)
 
 			sleepingBodies = false
-			
+
 			Gamevars.world = new @b2World(gravity, sleepingBodies)
 
 			SCALE = 30
@@ -94,7 +96,12 @@ define ["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", "b
 					fixDef.shape = new @b2CircleShape(Math.random() + 0.1) #radius
 				bodyDef.position.x = Math.random() * 25
 				bodyDef.position.y = Math.random() * 10
-				Gamevars.world.CreateBody(bodyDef).CreateFixture fixDef
+
+				nextBody = Gamevars.world.CreateBody(bodyDef)
+
+				@bodiesMap[i] = nextBody
+
+				nextBody.CreateFixture fixDef
 				++i
 
 			#setup debug draw
@@ -105,6 +112,16 @@ define ["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", "b
 			debugDraw.SetLineThickness 1.0
 			debugDraw.SetFlags @b2DebugDraw.e_shapeBit | @b2DebugDraw.e_jointBit
 			Gamevars.world.SetDebugDraw debugDraw
+
+			setTimeout =>
+				body = @bodiesMap[0]
+
+#				body.ApplyImpulse(new b2Vec2(Math.cos(degrees * (Math.PI / 180)) * power,
+#						Math.sin(degrees * (Math.PI / 180)) * power),
+#					body.GetWorldCenter())
+
+				body.ApplyImpulse(new @b2Vec2(-100, -100),	body.GetWorldCenter())
+			, 10000
 
 		ready: ->
 		
