@@ -3,8 +3,8 @@ define(function() {
   Gamevars = {
     world: null,
     stats: null,
-    currentGravX: 10,
-    currentGravY: 0,
+    currentGravX: 0,
+    currentGravY: 10,
     accelerometerX: 0,
     accelerometerY: 0,
     accelerometerZ: 0,

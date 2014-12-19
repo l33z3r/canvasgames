@@ -2,10 +2,9 @@ define(["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", "b
   var box2d_game_screen;
   box2d_game_screen = {
     enter: function() {
-      var SCALE, bodyDef, debugDraw, fixDef, gravity, i;
+      var SCALE, bodyDef, debugDraw, fixDef, gravity, i, sleepingBodies;
       new Motion().startWatching();
       this.clearCanvas = true;
-      debugger;
       Gamevars.stats = new Stats();
       document.body.appendChild(Gamevars.stats.domElement);
       this.b2Vec2 = Box2D.Common.Math.b2Vec2;
@@ -19,7 +18,8 @@ define(["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", "b
       this.b2CircleShape = Box2D.Collision.Shapes.b2CircleShape;
       this.b2DebugDraw = Box2D.Dynamics.b2DebugDraw;
       gravity = new this.b2Vec2(Gamevars.currentGravX, Gamevars.currentGravY);
-      Gamevars.world = new this.b2World(gravity, true);
+      sleepingBodies = false;
+      Gamevars.world = new this.b2World(gravity, sleepingBodies);
       SCALE = 30;
       fixDef = new this.b2FixtureDef;
       fixDef.density = 1.0;
@@ -74,7 +74,6 @@ define(["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", "b
     },
     ready: function() {},
     step: function(delta) {
-      debugger;
       var frameRate, gravity, positionIterations, usingLandscape, velocityIterations;
       Gamevars.accelerometerX = (Gamevars.currentReadAccelerationX * Settings.accelFilteringFactor) + Gamevars.accelerometerX * (1.0 - Settings.accelFilteringFactor);
       Gamevars.accelerometerY = (Gamevars.currentReadAccelerationY * Settings.accelFilteringFactor) + Gamevars.accelerometerY * (1.0 - Settings.accelFilteringFactor);

@@ -6,7 +6,6 @@ define ["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", "b
 
 			@clearCanvas = true
 
-			debugger
 			Gamevars.stats = new Stats()
 			document.body.appendChild(Gamevars.stats.domElement)
 
@@ -22,7 +21,10 @@ define ["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", "b
 			@b2DebugDraw = Box2D.Dynamics.b2DebugDraw
 
 			gravity = new @b2Vec2(Gamevars.currentGravX, Gamevars.currentGravY)
-			Gamevars.world = new @b2World(gravity, true) #allow sleep
+
+			sleepingBodies = false
+			
+			Gamevars.world = new @b2World(gravity, sleepingBodies)
 
 			SCALE = 30
 			fixDef = new @b2FixtureDef
@@ -108,8 +110,6 @@ define ["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", "b
 		
 
 		step: (delta) ->
-			debugger
-
 			Gamevars.accelerometerX = (Gamevars.currentReadAccelerationX * Settings.accelFilteringFactor) + Gamevars.accelerometerX * (1.0 - Settings.accelFilteringFactor)
 			Gamevars.accelerometerY = (Gamevars.currentReadAccelerationY * Settings.accelFilteringFactor) + Gamevars.accelerometerY * (1.0 - Settings.accelFilteringFactor)
 			Gamevars.accelerometerZ = (Gamevars.currentReadAccelerationZ * Settings.accelFilteringFactor) + Gamevars.accelerometerZ * (1.0 - Settings.accelFilteringFactor)
