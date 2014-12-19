@@ -88,7 +88,7 @@ define ["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", "b
 			bodyDef.type = @b2Body.b2_dynamicBody
 			i = 0
 
-			while i < 10
+			while i < 20
 				if Math.random() > 0.5
 					fixDef.shape = new @b2PolygonShape
 					#half width
