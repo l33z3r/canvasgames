@@ -2,7 +2,7 @@ define(["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", "b
   var box2d_game_screen;
   box2d_game_screen = {
     enter: function() {
-      var SCALE, bodyDef, debugDraw, fixDef, gravity, i, nextBody, sleepingBodies;
+      var SCALE, bodyDef, debugDraw, fixDef, gravity, i, listener, nextBody, sleepingBodies;
       new Motion().startWatching();
       this.clearCanvas = true;
       Gamevars.stats = new Stats();
@@ -17,6 +17,7 @@ define(["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", "b
       this.b2PolygonShape = Box2D.Collision.Shapes.b2PolygonShape;
       this.b2CircleShape = Box2D.Collision.Shapes.b2CircleShape;
       this.b2DebugDraw = Box2D.Dynamics.b2DebugDraw;
+      this.b2ContactListener = Box2D.Dynamics.b2ContactListener;
       this.bodiesMap = {};
       gravity = new this.b2Vec2(Gamevars.currentGravX, Gamevars.currentGravY);
       sleepingBodies = false;
@@ -63,6 +64,9 @@ define(["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", "b
         bodyDef.position.x = Math.random() * 25;
         bodyDef.position.y = Math.random() * 10;
         nextBody = Gamevars.world.CreateBody(bodyDef);
+        nextBody.SetUserData({
+          id: i + 1
+        });
         this.bodiesMap[i] = nextBody;
         nextBody.CreateFixture(fixDef);
         ++i;
@@ -74,6 +78,16 @@ define(["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", "b
       debugDraw.SetLineThickness(1.0);
       debugDraw.SetFlags(this.b2DebugDraw.e_shapeBit | this.b2DebugDraw.e_jointBit);
       Gamevars.world.SetDebugDraw(debugDraw);
+      listener = new this.b2ContactListener;
+      listener.BeginContact = function(contact) {
+        console.log(contact.GetFixtureA().GetBody().GetUserData());
+      };
+      listener.EndContact = function(contact) {
+        console.log(contact.GetFixtureA().GetBody().GetUserData());
+      };
+      listener.PostSolve = function(contact, impulse) {};
+      listener.PreSolve = function(contact, oldManifold) {};
+      Gamevars.world.SetContactListener(listener);
       return setTimeout((function(_this) {
         return function() {
           var body;

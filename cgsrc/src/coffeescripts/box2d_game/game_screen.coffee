@@ -19,6 +19,7 @@ define ["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", "b
 			@b2PolygonShape = Box2D.Collision.Shapes.b2PolygonShape
 			@b2CircleShape = Box2D.Collision.Shapes.b2CircleShape
 			@b2DebugDraw = Box2D.Dynamics.b2DebugDraw
+			@b2ContactListener = Box2D.Dynamics.b2ContactListener
 
 			@bodiesMap = {}
 
@@ -99,6 +100,7 @@ define ["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", "b
 
 				nextBody = Gamevars.world.CreateBody(bodyDef)
 
+				nextBody.SetUserData({id: i + 1})
 				@bodiesMap[i] = nextBody
 
 				nextBody.CreateFixture fixDef
@@ -112,6 +114,23 @@ define ["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", "b
 			debugDraw.SetLineThickness 1.0
 			debugDraw.SetFlags @b2DebugDraw.e_shapeBit | @b2DebugDraw.e_jointBit
 			Gamevars.world.SetDebugDraw debugDraw
+
+
+			#set up contact listener
+			listener = new @b2ContactListener
+			listener.BeginContact = (contact) ->
+				console.log contact.GetFixtureA().GetBody().GetUserData()
+				return
+
+			listener.EndContact = (contact) ->
+				console.log contact.GetFixtureA().GetBody().GetUserData()
+				return
+
+			listener.PostSolve = (contact, impulse) ->
+
+			listener.PreSolve = (contact, oldManifold) ->
+
+			Gamevars.world.SetContactListener listener
 
 			setTimeout =>
 				body = @bodiesMap[0]
