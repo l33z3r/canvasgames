@@ -16451,8 +16451,8 @@ define('box2d_game/Motion',["./Gamevars"], function(Gamevars) {
       return this.watchID = navigator.accelerometer.watchAcceleration(onSuccess, onError, options);
     } else {
       handleOrientationEvent = function(event) {
-        Gamevars.currentReadAccelerationX = -event.gamma;
-        return Gamevars.currentReadAccelerationY = event.beta;
+        Gamevars.currentReadAccelerationX = event.gamma;
+        return Gamevars.currentReadAccelerationY = -event.beta;
       };
       return window.addEventListener("deviceorientation", handleOrientationEvent, false);
     }
@@ -16541,7 +16541,7 @@ define('box2d_game/game_screen',["game", "Settings", "./Settings", "./Gamevars",
       Gamevars.accelerometerX = (Gamevars.currentReadAccelerationX * Settings.accelFilteringFactor) + Gamevars.accelerometerX * (1.0 - Settings.accelFilteringFactor);
       Gamevars.accelerometerY = (Gamevars.currentReadAccelerationY * Settings.accelFilteringFactor) + Gamevars.accelerometerY * (1.0 - Settings.accelFilteringFactor);
       Gamevars.accelerometerZ = (Gamevars.currentReadAccelerationZ * Settings.accelFilteringFactor) + Gamevars.accelerometerZ * (1.0 - Settings.accelFilteringFactor);
-      usingLandscape = true;
+      usingLandscape = false;
       if (usingLandscape) {
         if (Gamevars.accelerometerY > 0.05) {
           Gamevars.currentGravX = Settings.maxGravity;

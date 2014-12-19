@@ -21,8 +21,8 @@ define ["./Gamevars"], (Gamevars) ->
         #gamma is the left-to-right tilt in degrees, where right is positive
         #beta is the front-to-back tilt in degrees, where front is positive
 
-        Gamevars.currentReadAccelerationX = -event.gamma
-        Gamevars.currentReadAccelerationY = event.beta
+        Gamevars.currentReadAccelerationX = event.gamma
+        Gamevars.currentReadAccelerationY = -event.beta
 
         #console.log("new x y: " + x + " " + y)
 

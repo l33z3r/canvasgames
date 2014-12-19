@@ -20,8 +20,8 @@ define(["./Gamevars"], function(Gamevars) {
       return this.watchID = navigator.accelerometer.watchAcceleration(onSuccess, onError, options);
     } else {
       handleOrientationEvent = function(event) {
-        Gamevars.currentReadAccelerationX = -event.gamma;
-        return Gamevars.currentReadAccelerationY = event.beta;
+        Gamevars.currentReadAccelerationX = event.gamma;
+        return Gamevars.currentReadAccelerationY = -event.beta;
       };
       return window.addEventListener("deviceorientation", handleOrientationEvent, false);
     }

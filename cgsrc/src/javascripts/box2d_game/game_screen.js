@@ -79,7 +79,7 @@ define(["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", "b
       Gamevars.accelerometerX = (Gamevars.currentReadAccelerationX * Settings.accelFilteringFactor) + Gamevars.accelerometerX * (1.0 - Settings.accelFilteringFactor);
       Gamevars.accelerometerY = (Gamevars.currentReadAccelerationY * Settings.accelFilteringFactor) + Gamevars.accelerometerY * (1.0 - Settings.accelFilteringFactor);
       Gamevars.accelerometerZ = (Gamevars.currentReadAccelerationZ * Settings.accelFilteringFactor) + Gamevars.accelerometerZ * (1.0 - Settings.accelFilteringFactor);
-      usingLandscape = true;
+      usingLandscape = false;
       if (usingLandscape) {
         if (Gamevars.accelerometerY > 0.05) {
           Gamevars.currentGravX = Settings.maxGravity;
