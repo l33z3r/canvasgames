@@ -54,16 +54,15 @@ define(["./Player", "game", "Settings", "./Settings", "./Gamevars", "util/Pusher
       _results = [];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         body = _ref[_i];
+        game.layer.context.save();
+        game.layer.context.translate((body.GetPosition().x) * Settings.scale, (body.GetPosition().y) * Settings.scale);
+        game.layer.context.rotate(body.GetAngle());
+        game.layer.context.translate(-(body.GetPosition().x) * Settings.scale, -(body.GetPosition().y) * Settings.scale);
+        bodyX = (body.GetPosition().x - 1.6) * Settings.scale;
+        bodyY = (body.GetPosition().y - 1.9) * Settings.scale;
+        game.layer.drawRegion(this.player1.getImage(), this.player1.getNextSprite(), bodyX, bodyY);
+        game.layer.context.restore();
         if (body === this.myGreenTriangle) {
-          game.layer.context.save();
-          game.layer.context.translate(body.GetPosition().x * Settings.scale, body.GetPosition().y * Settings.scale);
-          game.layer.context.rotate(body.GetAngle());
-          game.layer.context.translate(-(body.GetPosition().x) * Settings.scale, -(body.GetPosition().y) * Settings.scale);
-          bodyX = (body.GetPosition().x + body.GetUserData().points[0][0]) * Settings.scale;
-          bodyY = (body.GetPosition().y + body.GetUserData().points[0][1]) * Settings.scale;
-          game.layer.drawRegion(this.player1.getImage(), this.player1.getNextSprite(), bodyX, bodyY);
-          _results.push(game.layer.context.restore());
-        } else {
           game.layer.context.save();
           game.layer.context.translate(body.GetPosition().x * Settings.scale, body.GetPosition().y * Settings.scale);
           game.layer.context.rotate(body.GetAngle());
@@ -80,6 +79,8 @@ define(["./Player", "game", "Settings", "./Settings", "./Gamevars", "util/Pusher
           game.layer.context.closePath();
           game.layer.context.fill();
           _results.push(game.layer.context.restore());
+        } else {
+          _results.push(void 0);
         }
       }
       return _results;
@@ -132,7 +133,7 @@ define(["./Player", "game", "Settings", "./Settings", "./Gamevars", "util/Pusher
       shapeDef = [[0, 0], [1, 0], [0, 1]];
       bodyID = 0;
       this.bodies = [];
-      this.numBodies = 50;
+      this.numBodies = 30;
       _results = [];
       for (num = _i = 1, _ref = this.numBodies; 1 <= _ref ? _i <= _ref : _i >= _ref; num = 1 <= _ref ? ++_i : --_i) {
         fixDef.shape = new this.b2PolygonShape;

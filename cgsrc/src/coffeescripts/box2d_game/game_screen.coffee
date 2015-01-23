@@ -60,21 +60,20 @@ define ["./Player", "game", "Settings", "./Settings", "./Gamevars", "util/Pusher
 			game.layer.clear GlobalSettings.appBGColor
 
 			for body in @bodies
+				game.layer.context.save()
+
+				game.layer.context.translate((body.GetPosition().x) * Settings.scale, (body.GetPosition().y) * Settings.scale)
+				game.layer.context.rotate(body.GetAngle())
+				game.layer.context.translate(-(body.GetPosition().x) * Settings.scale, -(body.GetPosition().y) * Settings.scale)
+
+				bodyX = (body.GetPosition().x - 1.6) * Settings.scale
+				bodyY = (body.GetPosition().y - 1.9) * Settings.scale
+
+				game.layer.drawRegion @player1.getImage(), @player1.getNextSprite(), bodyX, bodyY
+
+				game.layer.context.restore()
+
 				if body is @myGreenTriangle
-					game.layer.context.save()
-
-					game.layer.context.translate(body.GetPosition().x * Settings.scale, body.GetPosition().y * Settings.scale)
-					game.layer.context.rotate(body.GetAngle())
-					game.layer.context.translate(-(body.GetPosition().x) * Settings.scale, -(body.GetPosition().y) * Settings.scale)
-
-					bodyX = (body.GetPosition().x + body.GetUserData().points[0][0]) * Settings.scale
-					bodyY = (body.GetPosition().y + body.GetUserData().points[0][1]) * Settings.scale
-
-					game.layer.drawRegion @player1.getImage(), @player1.getNextSprite(), bodyX, bodyY
-
-					game.layer.context.restore()
-				else
-
 					game.layer.context.save()
 
 					game.layer.context.translate(body.GetPosition().x * Settings.scale, body.GetPosition().y * Settings.scale)
@@ -94,6 +93,7 @@ define ["./Player", "game", "Settings", "./Settings", "./Gamevars", "util/Pusher
 					game.layer.context.fill()
 
 					game.layer.context.restore()
+
 
 #			for wall in @walls
 #				game.layer.context.fillStyle = "black"
@@ -163,7 +163,7 @@ define ["./Player", "game", "Settings", "./Settings", "./Gamevars", "util/Pusher
 			bodyID = 0
 			@bodies = []
 
-			@numBodies = 50
+			@numBodies = 30
 
 			for num in [1..@numBodies]
 				fixDef.shape = new @b2PolygonShape
