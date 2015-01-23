@@ -1,8 +1,9 @@
-define(["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", "box2d", "stats", "./Motion", "brain"], function(game, GlobalSettings, Settings, Gamevars, PusherManager, Box2D, Stats, Motion, brain) {
+define(["./Player", "game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", "box2d", "stats", "./Motion", "brain"], function(Player, game, GlobalSettings, Settings, Gamevars, PusherManager, Box2D, Stats, Motion, brain) {
   var box2d_game_screen;
   box2d_game_screen = {
     enter: function() {
       var gravity, sleepingBodies;
+      this.player1 = new Player("Player 1");
       this.myGreenTriangle = null;
       this.clearCanvas = true;
       new Motion().startWatching();
@@ -40,7 +41,7 @@ define(["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", "b
       return Gamevars.world.ClearForces();
     },
     render: function(delta) {
-      var body, point, _i, _j, _len, _len1, _ref, _ref1, _results;
+      var body, bodyX, bodyY, point, _i, _j, _len, _len1, _ref, _ref1, _results;
       if (this.clearCanvas) {
         game.layer.clear();
         this.clearCanvas = false;
@@ -53,26 +54,33 @@ define(["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", "b
       _results = [];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         body = _ref[_i];
-        game.layer.context.save();
-        game.layer.context.translate(body.GetPosition().x * Settings.scale, body.GetPosition().y * Settings.scale);
-        game.layer.context.rotate(body.GetAngle());
-        game.layer.context.translate(-(body.GetPosition().x) * Settings.scale, -(body.GetPosition().y) * Settings.scale);
         if (body === this.myGreenTriangle) {
-          game.layer.context.fillStyle = "green";
+          game.layer.context.save();
+          game.layer.context.translate(body.GetPosition().x * Settings.scale, body.GetPosition().y * Settings.scale);
+          game.layer.context.rotate(body.GetAngle());
+          game.layer.context.translate(-(body.GetPosition().x) * Settings.scale, -(body.GetPosition().y) * Settings.scale);
+          bodyX = (body.GetPosition().x + body.GetUserData().points[0][0]) * Settings.scale;
+          bodyY = (body.GetPosition().y + body.GetUserData().points[0][1]) * Settings.scale;
+          game.layer.drawRegion(this.player1.getImage(), this.player1.getNextSprite(), bodyX, bodyY);
+          _results.push(game.layer.context.restore());
         } else {
+          game.layer.context.save();
+          game.layer.context.translate(body.GetPosition().x * Settings.scale, body.GetPosition().y * Settings.scale);
+          game.layer.context.rotate(body.GetAngle());
+          game.layer.context.translate(-(body.GetPosition().x) * Settings.scale, -(body.GetPosition().y) * Settings.scale);
           game.layer.context.fillStyle = "red";
+          game.layer.context.beginPath();
+          game.layer.context.moveTo((body.GetPosition().x + body.GetUserData().points[0][0]) * Settings.scale, (body.GetPosition().y + body.GetUserData().points[0][1]) * Settings.scale);
+          _ref1 = body.GetUserData().points;
+          for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+            point = _ref1[_j];
+            game.layer.context.lineTo((point[0] + body.GetPosition().x) * Settings.scale, (point[1] + body.GetPosition().y) * Settings.scale);
+          }
+          game.layer.context.lineTo((body.GetPosition().x + body.GetUserData().points[0][0]) * Settings.scale, (body.GetPosition().y + body.GetUserData().points[0][1]) * Settings.scale);
+          game.layer.context.closePath();
+          game.layer.context.fill();
+          _results.push(game.layer.context.restore());
         }
-        game.layer.context.beginPath();
-        game.layer.context.moveTo((body.GetPosition().x + body.GetUserData().points[0][0]) * Settings.scale, (body.GetPosition().y + body.GetUserData().points[0][1]) * Settings.scale);
-        _ref1 = body.GetUserData().points;
-        for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-          point = _ref1[_j];
-          game.layer.context.lineTo((point[0] + body.GetPosition().x) * Settings.scale, (point[1] + body.GetPosition().y) * Settings.scale);
-        }
-        game.layer.context.lineTo((body.GetPosition().x + body.GetUserData().points[0][0]) * Settings.scale, (body.GetPosition().y + body.GetUserData().points[0][1]) * Settings.scale);
-        game.layer.context.closePath();
-        game.layer.context.fill();
-        _results.push(game.layer.context.restore());
       }
       return _results;
     },
@@ -93,8 +101,8 @@ define(["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", "b
           if (body === _this.myGreenTriangle) {
             return;
           }
-          randomVecX = Math.floor(Math.random() * 20) - 10;
-          randomVecY = Math.floor(Math.random() * 20) - 10;
+          randomVecX = Math.floor(Math.random() * 10) - 5;
+          randomVecY = Math.floor(Math.random() * 10) - 5;
           return body.ApplyImpulse(new _this.b2Vec2(randomVecX, randomVecY), body.GetWorldCenter());
         };
       })(this), 1000);
@@ -240,14 +248,14 @@ define(["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", "b
     setUpCollisionDetection: function() {
       var listener;
       listener = new this.b2ContactListener;
-      listener.BeginContact = function(contact) {
-        var bodyAId, bodyBId;
+      listener.BeginContact = function(contact) {};
+      listener.EndContact = function(contact) {};
+      listener.PostSolve = function(contact, impulse) {
+        var bodyAId, bodyBId, damage;
         bodyAId = contact.GetFixtureA().GetBody().GetUserData().id;
         bodyBId = contact.GetFixtureB().GetBody().GetUserData().id;
-        return console.log("" + bodyAId + " collided with " + bodyBId);
+        return damage = impulse.normalImpulses[0];
       };
-      listener.EndContact = function(contact) {};
-      listener.PostSolve = function(contact, impulse) {};
       listener.PreSolve = function(contact, oldManifold) {};
       return Gamevars.world.SetContactListener(listener);
     },

@@ -15976,6 +15976,28 @@ define('sketch_pad_game/game_screen',["game", "Settings", "./Settings", "./Gamev
   return sketch_pad_game_screen;
 });
 
+define('box2d_game/Player',["game"], function(game) {
+  var Player;
+  Player = function(name) {
+    game.loadImages("bird_right");
+    this.name = name;
+    this.lastTick = 0;
+    return this.duration = 1;
+  };
+  Player.prototype.getNextSprite = function() {
+    var delta, frame, offset, sprite;
+    delta = (Date.now() - this.lastTick) / 1000;
+    frame = 8 * (delta % this.duration / this.duration) | 0;
+    offset = 19;
+    sprite = [offset + (frame * 109), 28, 109, 100];
+    return sprite;
+  };
+  Player.prototype.getImage = function() {
+    return game.images.bird_right;
+  };
+  return Player;
+});
+
 define('box2d_game/Settings',[],function() {
   var Settings;
   Settings = {
@@ -22277,11 +22299,12 @@ define("brain", (function (global) {
     };
 }(this)));
 
-define('box2d_game/game_screen',["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", "box2d", "stats", "./Motion", "brain"], function(game, GlobalSettings, Settings, Gamevars, PusherManager, Box2D, Stats, Motion, brain) {
+define('box2d_game/game_screen',["./Player", "game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", "box2d", "stats", "./Motion", "brain"], function(Player, game, GlobalSettings, Settings, Gamevars, PusherManager, Box2D, Stats, Motion, brain) {
   var box2d_game_screen;
   box2d_game_screen = {
     enter: function() {
       var gravity, sleepingBodies;
+      this.player1 = new Player("Player 1");
       this.myGreenTriangle = null;
       this.clearCanvas = true;
       new Motion().startWatching();
@@ -22319,7 +22342,7 @@ define('box2d_game/game_screen',["game", "Settings", "./Settings", "./Gamevars",
       return Gamevars.world.ClearForces();
     },
     render: function(delta) {
-      var body, point, _i, _j, _len, _len1, _ref, _ref1, _results;
+      var body, bodyX, bodyY, point, _i, _j, _len, _len1, _ref, _ref1, _results;
       if (this.clearCanvas) {
         game.layer.clear();
         this.clearCanvas = false;
@@ -22332,26 +22355,33 @@ define('box2d_game/game_screen',["game", "Settings", "./Settings", "./Gamevars",
       _results = [];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         body = _ref[_i];
-        game.layer.context.save();
-        game.layer.context.translate(body.GetPosition().x * Settings.scale, body.GetPosition().y * Settings.scale);
-        game.layer.context.rotate(body.GetAngle());
-        game.layer.context.translate(-(body.GetPosition().x) * Settings.scale, -(body.GetPosition().y) * Settings.scale);
         if (body === this.myGreenTriangle) {
-          game.layer.context.fillStyle = "green";
+          game.layer.context.save();
+          game.layer.context.translate(body.GetPosition().x * Settings.scale, body.GetPosition().y * Settings.scale);
+          game.layer.context.rotate(body.GetAngle());
+          game.layer.context.translate(-(body.GetPosition().x) * Settings.scale, -(body.GetPosition().y) * Settings.scale);
+          bodyX = (body.GetPosition().x + body.GetUserData().points[0][0]) * Settings.scale;
+          bodyY = (body.GetPosition().y + body.GetUserData().points[0][1]) * Settings.scale;
+          game.layer.drawRegion(this.player1.getImage(), this.player1.getNextSprite(), bodyX, bodyY);
+          _results.push(game.layer.context.restore());
         } else {
+          game.layer.context.save();
+          game.layer.context.translate(body.GetPosition().x * Settings.scale, body.GetPosition().y * Settings.scale);
+          game.layer.context.rotate(body.GetAngle());
+          game.layer.context.translate(-(body.GetPosition().x) * Settings.scale, -(body.GetPosition().y) * Settings.scale);
           game.layer.context.fillStyle = "red";
+          game.layer.context.beginPath();
+          game.layer.context.moveTo((body.GetPosition().x + body.GetUserData().points[0][0]) * Settings.scale, (body.GetPosition().y + body.GetUserData().points[0][1]) * Settings.scale);
+          _ref1 = body.GetUserData().points;
+          for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+            point = _ref1[_j];
+            game.layer.context.lineTo((point[0] + body.GetPosition().x) * Settings.scale, (point[1] + body.GetPosition().y) * Settings.scale);
+          }
+          game.layer.context.lineTo((body.GetPosition().x + body.GetUserData().points[0][0]) * Settings.scale, (body.GetPosition().y + body.GetUserData().points[0][1]) * Settings.scale);
+          game.layer.context.closePath();
+          game.layer.context.fill();
+          _results.push(game.layer.context.restore());
         }
-        game.layer.context.beginPath();
-        game.layer.context.moveTo((body.GetPosition().x + body.GetUserData().points[0][0]) * Settings.scale, (body.GetPosition().y + body.GetUserData().points[0][1]) * Settings.scale);
-        _ref1 = body.GetUserData().points;
-        for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-          point = _ref1[_j];
-          game.layer.context.lineTo((point[0] + body.GetPosition().x) * Settings.scale, (point[1] + body.GetPosition().y) * Settings.scale);
-        }
-        game.layer.context.lineTo((body.GetPosition().x + body.GetUserData().points[0][0]) * Settings.scale, (body.GetPosition().y + body.GetUserData().points[0][1]) * Settings.scale);
-        game.layer.context.closePath();
-        game.layer.context.fill();
-        _results.push(game.layer.context.restore());
       }
       return _results;
     },
@@ -22372,8 +22402,8 @@ define('box2d_game/game_screen',["game", "Settings", "./Settings", "./Gamevars",
           if (body === _this.myGreenTriangle) {
             return;
           }
-          randomVecX = Math.floor(Math.random() * 20) - 10;
-          randomVecY = Math.floor(Math.random() * 20) - 10;
+          randomVecX = Math.floor(Math.random() * 10) - 5;
+          randomVecY = Math.floor(Math.random() * 10) - 5;
           return body.ApplyImpulse(new _this.b2Vec2(randomVecX, randomVecY), body.GetWorldCenter());
         };
       })(this), 1000);
@@ -22519,14 +22549,14 @@ define('box2d_game/game_screen',["game", "Settings", "./Settings", "./Gamevars",
     setUpCollisionDetection: function() {
       var listener;
       listener = new this.b2ContactListener;
-      listener.BeginContact = function(contact) {
-        var bodyAId, bodyBId;
+      listener.BeginContact = function(contact) {};
+      listener.EndContact = function(contact) {};
+      listener.PostSolve = function(contact, impulse) {
+        var bodyAId, bodyBId, damage;
         bodyAId = contact.GetFixtureA().GetBody().GetUserData().id;
         bodyBId = contact.GetFixtureB().GetBody().GetUserData().id;
-        return console.log("" + bodyAId + " collided with " + bodyBId);
+        return damage = impulse.normalImpulses[0];
       };
-      listener.EndContact = function(contact) {};
-      listener.PostSolve = function(contact, impulse) {};
       listener.PreSolve = function(contact, oldManifold) {};
       return Gamevars.world.SetContactListener(listener);
     },

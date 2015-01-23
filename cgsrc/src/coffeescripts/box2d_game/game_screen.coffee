@@ -1,7 +1,9 @@
-define ["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", "box2d", "stats", "./Motion", "brain"]
-, (game, GlobalSettings, Settings, Gamevars, PusherManager, Box2D, Stats, Motion, brain) ->
+define ["./Player", "game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", "box2d", "stats", "./Motion", "brain"]
+, (Player, game, GlobalSettings, Settings, Gamevars, PusherManager, Box2D, Stats, Motion, brain) ->
 	box2d_game_screen =
 		enter: ->
+			@player1 = new Player("Player 1")
+
 			@myGreenTriangle = null
 			@clearCanvas = true
 
@@ -58,28 +60,40 @@ define ["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", "b
 			game.layer.clear GlobalSettings.appBGColor
 
 			for body in @bodies
-				game.layer.context.save()
-
-				game.layer.context.translate(body.GetPosition().x * Settings.scale, body.GetPosition().y * Settings.scale)
-				game.layer.context.rotate(body.GetAngle())
-				game.layer.context.translate(-(body.GetPosition().x) * Settings.scale, -(body.GetPosition().y) * Settings.scale)
-
 				if body is @myGreenTriangle
-					game.layer.context.fillStyle = "green"
+					game.layer.context.save()
+
+					game.layer.context.translate(body.GetPosition().x * Settings.scale, body.GetPosition().y * Settings.scale)
+					game.layer.context.rotate(body.GetAngle())
+					game.layer.context.translate(-(body.GetPosition().x) * Settings.scale, -(body.GetPosition().y) * Settings.scale)
+
+					bodyX = (body.GetPosition().x + body.GetUserData().points[0][0]) * Settings.scale
+					bodyY = (body.GetPosition().y + body.GetUserData().points[0][1]) * Settings.scale
+
+					game.layer.drawRegion @player1.getImage(), @player1.getNextSprite(), bodyX, bodyY
+
+					game.layer.context.restore()
 				else
+
+					game.layer.context.save()
+
+					game.layer.context.translate(body.GetPosition().x * Settings.scale, body.GetPosition().y * Settings.scale)
+					game.layer.context.rotate(body.GetAngle())
+					game.layer.context.translate(-(body.GetPosition().x) * Settings.scale, -(body.GetPosition().y) * Settings.scale)
+
 					game.layer.context.fillStyle = "red"
 
-				game.layer.context.beginPath();
-				game.layer.context.moveTo((body.GetPosition().x + body.GetUserData().points[0][0]) * Settings.scale, (body.GetPosition().y + body.GetUserData().points[0][1]) * Settings.scale);
+					game.layer.context.beginPath();
+					game.layer.context.moveTo((body.GetPosition().x + body.GetUserData().points[0][0]) * Settings.scale, (body.GetPosition().y + body.GetUserData().points[0][1]) * Settings.scale);
 
-				for point in body.GetUserData().points
-					game.layer.context.lineTo((point[0] + body.GetPosition().x) * Settings.scale, (point[1] + body.GetPosition().y) * Settings.scale)
+					for point in body.GetUserData().points
+						game.layer.context.lineTo((point[0] + body.GetPosition().x) * Settings.scale, (point[1] + body.GetPosition().y) * Settings.scale)
 
-				game.layer.context.lineTo((body.GetPosition().x + body.GetUserData().points[0][0]) * Settings.scale, (body.GetPosition().y + body.GetUserData().points[0][1]) * Settings.scale);
-				game.layer.context.closePath()
-				game.layer.context.fill()
+					game.layer.context.lineTo((body.GetPosition().x + body.GetUserData().points[0][0]) * Settings.scale, (body.GetPosition().y + body.GetUserData().points[0][1]) * Settings.scale);
+					game.layer.context.closePath()
+					game.layer.context.fill()
 
-				game.layer.context.restore()
+					game.layer.context.restore()
 
 #			for wall in @walls
 #				game.layer.context.fillStyle = "black"
@@ -116,8 +130,8 @@ define ["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", "b
 				if body is @myGreenTriangle
 					return
 
-				randomVecX = Math.floor(Math.random() * 20) - 10
-				randomVecY = Math.floor(Math.random() * 20) - 10
+				randomVecX = Math.floor(Math.random() * 10) - 5
+				randomVecY = Math.floor(Math.random() * 10) - 5
 				body.ApplyImpulse(new @b2Vec2(randomVecX, randomVecY),	body.GetWorldCenter())
 			, 1000
 
@@ -307,13 +321,16 @@ define ["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", "b
 		setUpCollisionDetection: ->
 			listener = new @b2ContactListener
 			listener.BeginContact = (contact) ->
-				bodyAId = contact.GetFixtureA().GetBody().GetUserData().id
-				bodyBId = contact.GetFixtureB().GetBody().GetUserData().id
-				console.log "#{bodyAId} collided with #{bodyBId}"
 
 			listener.EndContact = (contact) ->
 
 			listener.PostSolve = (contact, impulse) ->
+				bodyAId = contact.GetFixtureA().GetBody().GetUserData().id
+				bodyBId = contact.GetFixtureB().GetBody().GetUserData().id
+				damage = impulse.normalImpulses[0]
+
+#				if damage > 0
+#					console.log "#{bodyAId} collided with #{bodyBId} with impulse #{damage}"
 
 			listener.PreSolve = (contact, oldManifold) ->
 
