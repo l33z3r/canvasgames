@@ -1,12 +1,105 @@
-define(["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", "box2d", "stats", "./Motion"], function(game, GlobalSettings, Settings, Gamevars, PusherManager, Box2D, Stats, Motion) {
+define(["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", "box2d", "stats", "./Motion", "brain"], function(game, GlobalSettings, Settings, Gamevars, PusherManager, Box2D, Stats, Motion, brain) {
   var box2d_game_screen;
   box2d_game_screen = {
     enter: function() {
-      var SCALE, bodyDef, debugDraw, fixDef, gravity, i, listener, nextBody, sleepingBodies;
-      new Motion().startWatching();
+      var gravity, sleepingBodies;
+      this.myGreenTriangle = null;
       this.clearCanvas = true;
-      Gamevars.stats = new Stats();
-      document.body.appendChild(Gamevars.stats.domElement);
+      new Motion().startWatching();
+      this.initB2Vars();
+      this.bodiesMap = {};
+      gravity = new this.b2Vec2(Gamevars.currentGravX, Gamevars.currentGravY);
+      sleepingBodies = false;
+      Gamevars.world = new this.b2World(gravity, sleepingBodies);
+      this.createWalls();
+      this.createBodies();
+      this.setUpDebugDraw();
+      this.setUpCollisionDetection();
+      return this.initRandomImpulse();
+    },
+    ready: function() {},
+    step: function(delta) {
+      var frameRate, positionIterations, velocityIterations;
+      if (game.keyboard.keys["right"]) {
+        this.myGreenTriangle.ApplyForce(new this.b2Vec2(1, 0), this.myGreenTriangle.GetWorldCenter());
+      } else if (game.keyboard.keys["left"]) {
+        this.myGreenTriangle.ApplyForce(new this.b2Vec2(-1, 0), this.myGreenTriangle.GetWorldCenter());
+      }
+      if (game.keyboard.keys["up"]) {
+        this.myGreenTriangle.ApplyForce(new this.b2Vec2(0, -1), this.myGreenTriangle.GetWorldCenter());
+      } else if (game.keyboard.keys["down"]) {
+        this.myGreenTriangle.ApplyForce(new this.b2Vec2(0, 1), this.myGreenTriangle.GetWorldCenter());
+      }
+      frameRate = 1 / 60;
+      velocityIterations = 10;
+      positionIterations = 10;
+      Gamevars.world.Step(frameRate, velocityIterations, positionIterations);
+      if (this.debugDraw) {
+        Gamevars.world.DrawDebugData();
+      }
+      return Gamevars.world.ClearForces();
+    },
+    render: function(delta) {
+      var body, point, _i, _j, _len, _len1, _ref, _ref1, _results;
+      if (this.clearCanvas) {
+        game.layer.clear();
+        this.clearCanvas = false;
+      }
+      if (this.debugDraw) {
+        return;
+      }
+      game.layer.clear(GlobalSettings.appBGColor);
+      _ref = this.bodies;
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        body = _ref[_i];
+        game.layer.context.save();
+        game.layer.context.translate(body.GetPosition().x * Settings.scale, body.GetPosition().y * Settings.scale);
+        game.layer.context.rotate(body.GetAngle());
+        game.layer.context.translate(-(body.GetPosition().x) * Settings.scale, -(body.GetPosition().y) * Settings.scale);
+        if (body === this.myGreenTriangle) {
+          game.layer.context.fillStyle = "green";
+        } else {
+          game.layer.context.fillStyle = "red";
+        }
+        game.layer.context.beginPath();
+        game.layer.context.moveTo((body.GetPosition().x + body.GetUserData().points[0][0]) * Settings.scale, (body.GetPosition().y + body.GetUserData().points[0][1]) * Settings.scale);
+        _ref1 = body.GetUserData().points;
+        for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+          point = _ref1[_j];
+          game.layer.context.lineTo((point[0] + body.GetPosition().x) * Settings.scale, (point[1] + body.GetPosition().y) * Settings.scale);
+        }
+        game.layer.context.lineTo((body.GetPosition().x + body.GetUserData().points[0][0]) * Settings.scale, (body.GetPosition().y + body.GetUserData().points[0][1]) * Settings.scale);
+        game.layer.context.closePath();
+        game.layer.context.fill();
+        _results.push(game.layer.context.restore());
+      }
+      return _results;
+    },
+    mousedown: function(event) {},
+    mouseup: function(event) {},
+    mousemove: function(event) {},
+    keydown: function(event) {},
+    keyup: function(event) {},
+    touchstart: function(event) {},
+    touchend: function(event) {},
+    touchmove: function(event) {},
+    initRandomImpulse: function() {
+      return setInterval((function(_this) {
+        return function() {
+          var body, randomIndex, randomVecX, randomVecY;
+          randomIndex = Math.floor(Math.random() * Object.keys(_this.bodiesMap).length);
+          body = _this.bodiesMap[randomIndex];
+          if (body === _this.myGreenTriangle) {
+            return;
+          }
+          randomVecX = Math.floor(Math.random() * 20) - 10;
+          randomVecY = Math.floor(Math.random() * 20) - 10;
+          return body.ApplyImpulse(new _this.b2Vec2(randomVecX, randomVecY), body.GetWorldCenter());
+        };
+      })(this), 1000);
+    },
+    initB2Vars: function() {
       this.b2Vec2 = Box2D.Common.Math.b2Vec2;
       this.b2BodyDef = Box2D.Dynamics.b2BodyDef;
       this.b2Body = Box2D.Dynamics.b2Body;
@@ -17,150 +110,160 @@ define(["game", "Settings", "./Settings", "./Gamevars", "util/PusherManager", "b
       this.b2PolygonShape = Box2D.Collision.Shapes.b2PolygonShape;
       this.b2CircleShape = Box2D.Collision.Shapes.b2CircleShape;
       this.b2DebugDraw = Box2D.Dynamics.b2DebugDraw;
-      this.b2ContactListener = Box2D.Dynamics.b2ContactListener;
-      this.bodiesMap = {};
-      gravity = new this.b2Vec2(Gamevars.currentGravX, Gamevars.currentGravY);
-      sleepingBodies = false;
-      Gamevars.world = new this.b2World(gravity, sleepingBodies);
-      SCALE = 30;
+      return this.b2ContactListener = Box2D.Dynamics.b2ContactListener;
+    },
+    createBodies: function() {
+      var bodyDef, bodyID, fixDef, nextBody, num, shapeDef, shapeVecs, userData, vec, vertex, _i, _j, _len, _ref, _results;
       fixDef = new this.b2FixtureDef;
-      fixDef.density = 1.0;
+      fixDef.density = 0.2;
       fixDef.friction = 0.5;
       fixDef.restitution = 0.2;
       bodyDef = new this.b2BodyDef;
-      bodyDef.type = this.b2Body.b2_staticBody;
-      bodyDef.position.x = (GlobalSettings.gameWidth * game.scale) / 2 / SCALE;
-      bodyDef.position.y = (GlobalSettings.gameHeight * game.scale) / SCALE;
-      fixDef.shape = new this.b2PolygonShape;
-      fixDef.shape.SetAsBox(((GlobalSettings.gameWidth * game.scale) / SCALE) / 2, (10 / SCALE) / 2);
-      Gamevars.world.CreateBody(bodyDef).CreateFixture(fixDef);
-      bodyDef.type = this.b2Body.b2_staticBody;
-      bodyDef.position.x = 0 / SCALE;
-      bodyDef.position.y = (GlobalSettings.gameHeight * game.scale) / 2 / SCALE;
-      fixDef.shape = new this.b2PolygonShape;
-      fixDef.shape.SetAsBox((10 / SCALE) / 2, ((GlobalSettings.gameWidth * game.scale) / SCALE) / 2);
-      Gamevars.world.CreateBody(bodyDef).CreateFixture(fixDef);
-      bodyDef.type = this.b2Body.b2_staticBody;
-      bodyDef.position.x = (GlobalSettings.gameWidth * game.scale) / SCALE;
-      bodyDef.position.y = (GlobalSettings.gameHeight * game.scale) / 2 / SCALE;
-      fixDef.shape = new this.b2PolygonShape;
-      fixDef.shape.SetAsBox((10 / SCALE) / 2, ((GlobalSettings.gameWidth * game.scale) / SCALE) / 2);
-      Gamevars.world.CreateBody(bodyDef).CreateFixture(fixDef);
-      bodyDef.type = this.b2Body.b2_staticBody;
-      bodyDef.position.x = (GlobalSettings.gameWidth * game.scale) / 2 / SCALE;
-      bodyDef.position.y = 0 / SCALE;
-      fixDef.shape = new this.b2PolygonShape;
-      fixDef.shape.SetAsBox(((GlobalSettings.gameWidth * game.scale) / SCALE) / 2, (10 / SCALE) / 2);
-      Gamevars.world.CreateBody(bodyDef).CreateFixture(fixDef);
       bodyDef.type = this.b2Body.b2_dynamicBody;
-      i = 0;
-      while (i < 20) {
-        if (Math.random() > 0.5) {
-          fixDef.shape = new this.b2PolygonShape;
-          fixDef.shape.SetAsBox(Math.random() + 0.1, Math.random() + 0.1);
-        } else {
-          fixDef.shape = new this.b2CircleShape(Math.random() + 0.1);
+      bodyDef.bullet = true;
+      shapeDef = [[0, 0], [1, 0], [0, 1]];
+      bodyID = 0;
+      this.bodies = [];
+      this.numBodies = 50;
+      _results = [];
+      for (num = _i = 1, _ref = this.numBodies; 1 <= _ref ? _i <= _ref : _i >= _ref; num = 1 <= _ref ? ++_i : --_i) {
+        fixDef.shape = new this.b2PolygonShape;
+        shapeVecs = [];
+        for (_j = 0, _len = shapeDef.length; _j < _len; _j++) {
+          vertex = shapeDef[_j];
+          vec = new this.b2Vec2();
+          vec.Set(vertex[0], vertex[1]);
+          shapeVecs.push(vec);
         }
-        bodyDef.position.x = Math.random() * 25;
-        bodyDef.position.y = Math.random() * 10;
+        fixDef.shape.SetAsArray(shapeVecs, shapeVecs.length);
+        bodyDef.position.x = Math.random() * (1200 / game.scale / Settings.scale);
+        bodyDef.position.y = Math.random() * (700 / game.scale / Settings.scale);
         nextBody = Gamevars.world.CreateBody(bodyDef);
-        nextBody.SetUserData({
-          id: i + 1
-        });
-        this.bodiesMap[i] = nextBody;
-        nextBody.CreateFixture(fixDef);
-        ++i;
+        this.bodies.push(nextBody);
+        userData = {
+          id: bodyID + 1,
+          points: shapeDef
+        };
+        if (bodyID === 0) {
+          userData["myGreenTriangle"] = true;
+          this.myGreenTriangle = nextBody;
+        }
+        nextBody.SetUserData(userData);
+        this.bodiesMap[bodyID] = nextBody;
+        bodyID++;
+        _results.push(nextBody.CreateFixture(fixDef));
       }
-      debugDraw = new this.b2DebugDraw();
-      debugDraw.SetSprite($('canvas').get(0).getContext("2d"));
-      debugDraw.SetDrawScale(SCALE);
-      debugDraw.SetFillAlpha(0.3);
-      debugDraw.SetLineThickness(1.0);
-      debugDraw.SetFlags(this.b2DebugDraw.e_shapeBit | this.b2DebugDraw.e_jointBit);
-      Gamevars.world.SetDebugDraw(debugDraw);
+      return _results;
+    },
+    createWalls: function() {
+      var bodyDef, fixDef, paintCoordsHeight, paintCoordsWidth, paintCoordsX, paintCoordsY, paintWallThickness, wallBody, wallThickness;
+      this.walls = [];
+      fixDef = new this.b2FixtureDef;
+      fixDef.density = 99;
+      fixDef.friction = 99;
+      fixDef.restitution = 0.5;
+      bodyDef = new this.b2BodyDef;
+      bodyDef.type = this.b2Body.b2_staticBody;
+      bodyDef.bullet = true;
+      bodyDef.position.x = (GlobalSettings.gameWidth * game.scale) / 2 / Settings.scale;
+      bodyDef.position.y = (GlobalSettings.gameHeight * game.scale) / Settings.scale;
+      fixDef.shape = new this.b2PolygonShape;
+      wallThickness = 100;
+      paintWallThickness = 10;
+      fixDef.shape.SetAsBox(((GlobalSettings.gameWidth * game.scale) / Settings.scale) / 2, (wallThickness / Settings.scale) / 2);
+      wallBody = Gamevars.world.CreateBody(bodyDef);
+      paintCoordsX = 0;
+      paintCoordsY = (GlobalSettings.gameHeight * game.scale) - wallThickness;
+      paintCoordsWidth = GlobalSettings.gameWidth * game.scale;
+      paintCoordsHeight = paintWallThickness;
+      wallBody.SetUserData({
+        id: "bottom_wall",
+        paintCoords: [paintCoordsX, paintCoordsY, paintCoordsWidth, paintCoordsHeight]
+      });
+      wallBody.CreateFixture(fixDef);
+      this.walls.push(wallBody);
+      bodyDef = new this.b2BodyDef;
+      bodyDef.type = this.b2Body.b2_staticBody;
+      bodyDef.bullet = true;
+      bodyDef.position.x = 0 / Settings.scale;
+      bodyDef.position.y = (GlobalSettings.gameHeight * game.scale) / 2 / Settings.scale;
+      fixDef.shape = new this.b2PolygonShape;
+      fixDef.shape.SetAsBox((wallThickness / Settings.scale) / 2, ((GlobalSettings.gameHeight * game.scale) / Settings.scale) / 2);
+      wallBody = Gamevars.world.CreateBody(bodyDef);
+      paintCoordsX = 0 - (wallThickness / 2);
+      paintCoordsY = 0;
+      paintCoordsWidth = wallThickness;
+      paintCoordsHeight = GlobalSettings.gameHeight * game.scale;
+      wallBody.SetUserData({
+        id: "left_wall",
+        paintCoords: [paintCoordsX, paintCoordsY, paintCoordsWidth, paintCoordsHeight]
+      });
+      wallBody.CreateFixture(fixDef);
+      this.walls.push(wallBody);
+      bodyDef = new this.b2BodyDef;
+      bodyDef.type = this.b2Body.b2_staticBody;
+      bodyDef.bullet = true;
+      bodyDef.position.x = (GlobalSettings.gameWidth * game.scale) / Settings.scale;
+      bodyDef.position.y = (GlobalSettings.gameHeight * game.scale) / 2 / Settings.scale;
+      fixDef.shape = new this.b2PolygonShape;
+      fixDef.shape.SetAsBox((wallThickness / Settings.scale) / 2, ((GlobalSettings.gameHeight * game.scale) / Settings.scale) / 2);
+      wallBody = Gamevars.world.CreateBody(bodyDef);
+      paintCoordsX = (GlobalSettings.gameWidth * game.scale) - (wallThickness / 2);
+      paintCoordsY = 0;
+      paintCoordsWidth = wallThickness;
+      paintCoordsHeight = GlobalSettings.gameHeight * game.scale;
+      wallBody.SetUserData({
+        id: "right_wall",
+        paintCoords: [paintCoordsX, paintCoordsY, paintCoordsWidth, paintCoordsHeight]
+      });
+      wallBody.CreateFixture(fixDef);
+      this.walls.push(wallBody);
+      bodyDef = new this.b2BodyDef;
+      bodyDef.type = this.b2Body.b2_staticBody;
+      bodyDef.bullet = true;
+      bodyDef.position.x = (GlobalSettings.gameWidth * game.scale) / 2 / Settings.scale;
+      bodyDef.position.y = 0 / Settings.scale;
+      fixDef.shape = new this.b2PolygonShape;
+      fixDef.shape.SetAsBox(((GlobalSettings.gameWidth * game.scale) / Settings.scale) / 2, (wallThickness / Settings.scale) / 2);
+      wallBody = Gamevars.world.CreateBody(bodyDef);
+      paintCoordsX = 0 - (wallThickness / 2);
+      paintCoordsY = 0 - (wallThickness / 2);
+      paintCoordsWidth = GlobalSettings.gameWidth * game.scale;
+      paintCoordsHeight = wallThickness;
+      wallBody.SetUserData({
+        id: "top_wall",
+        paintCoords: [paintCoordsX, paintCoordsY, paintCoordsWidth, paintCoordsHeight]
+      });
+      wallBody.CreateFixture(fixDef);
+      return this.walls.push(wallBody);
+    },
+    setUpCollisionDetection: function() {
+      var listener;
       listener = new this.b2ContactListener;
       listener.BeginContact = function(contact) {
-        console.log(contact.GetFixtureA().GetBody().GetUserData());
+        var bodyAId, bodyBId;
+        bodyAId = contact.GetFixtureA().GetBody().GetUserData().id;
+        bodyBId = contact.GetFixtureB().GetBody().GetUserData().id;
+        return console.log("" + bodyAId + " collided with " + bodyBId);
       };
-      listener.EndContact = function(contact) {
-        console.log(contact.GetFixtureA().GetBody().GetUserData());
-      };
+      listener.EndContact = function(contact) {};
       listener.PostSolve = function(contact, impulse) {};
       listener.PreSolve = function(contact, oldManifold) {};
-      Gamevars.world.SetContactListener(listener);
-      return setInterval((function(_this) {
-        return function() {
-          var body, randomIndex;
-          randomIndex = Math.floor(Math.random() * Object.keys(_this.bodiesMap).length);
-          body = _this.bodiesMap[randomIndex];
-          return body.ApplyImpulse(new _this.b2Vec2(-100, -100), body.GetWorldCenter());
-        };
-      })(this), 5000);
+      return Gamevars.world.SetContactListener(listener);
     },
-    ready: function() {},
-    step: function(delta) {
-      var frameRate, gravity, positionIterations, usingLandscape, velocityIterations;
-      Gamevars.accelerometerX = (Gamevars.currentReadAccelerationX * Settings.accelFilteringFactor) + Gamevars.accelerometerX * (1.0 - Settings.accelFilteringFactor);
-      Gamevars.accelerometerY = (Gamevars.currentReadAccelerationY * Settings.accelFilteringFactor) + Gamevars.accelerometerY * (1.0 - Settings.accelFilteringFactor);
-      Gamevars.accelerometerZ = (Gamevars.currentReadAccelerationZ * Settings.accelFilteringFactor) + Gamevars.accelerometerZ * (1.0 - Settings.accelFilteringFactor);
-      if (game.keyboard.keys["right"]) {
-        Gamevars.currentGravX = Settings.maxGravity;
-      } else if (game.keyboard.keys["left"]) {
-        Gamevars.currentGravX = -Settings.maxGravity;
+    setUpDebugDraw: function() {
+      var debugDraw;
+      this.debugDraw = false;
+      if (this.debugDraw) {
+        debugDraw = new this.b2DebugDraw();
+        debugDraw.SetSprite($('canvas').get(0).getContext("2d"));
+        debugDraw.SetDrawScale(Settings.scale);
+        debugDraw.SetFillAlpha(0.3);
+        debugDraw.SetLineThickness(1.0);
+        debugDraw.SetFlags(this.b2DebugDraw.e_shapeBit | this.b2DebugDraw.e_jointBit);
+        return Gamevars.world.SetDebugDraw(debugDraw);
       }
-      if (game.keyboard.keys["up"]) {
-        Gamevars.currentGravY = -Settings.maxGravity;
-      } else if (game.keyboard.keys["down"]) {
-        Gamevars.currentGravY = Settings.maxGravity;
-      }
-      usingLandscape = false;
-      if (usingLandscape) {
-        if (Gamevars.accelerometerY > 0.05) {
-          Gamevars.currentGravX = Settings.maxGravity;
-        } else if (Gamevars.accelerometerY < -0.05) {
-          Gamevars.currentGravX = -Settings.maxGravity;
-        }
-        if (Gamevars.accelerometerX < -0.05) {
-          Gamevars.currentGravY = -Settings.maxGravity;
-        } else if (Gamevars.accelerometerX > 0.05) {
-          Gamevars.currentGravY = Settings.maxGravity;
-        }
-      } else {
-        if (Gamevars.accelerometerY > 0.05) {
-          Gamevars.currentGravY = Settings.maxGravity;
-        } else if (Gamevars.accelerometerY < -0.05) {
-          Gamevars.currentGravY = -Settings.maxGravity;
-        }
-        if (Gamevars.accelerometerX < -0.05) {
-          Gamevars.currentGravX = Settings.maxGravity;
-        } else if (Gamevars.accelerometerX > 0.05) {
-          Gamevars.currentGravX = -Settings.maxGravity;
-        }
-      }
-      gravity = new this.b2Vec2(Gamevars.currentGravX, Gamevars.currentGravY);
-      Gamevars.world.SetGravity(gravity);
-      frameRate = 1 / 60;
-      velocityIterations = 10;
-      positionIterations = 10;
-      Gamevars.world.Step(frameRate, velocityIterations, positionIterations);
-      Gamevars.world.DrawDebugData();
-      Gamevars.world.ClearForces();
-      return Gamevars.stats.update();
-    },
-    render: function(delta) {
-      if (this.clearCanvas) {
-        game.layer.clear();
-        return this.clearCanvas = false;
-      }
-    },
-    mousedown: function(event) {},
-    mouseup: function(event) {},
-    mousemove: function(event) {},
-    keydown: function(event) {},
-    keyup: function(event) {},
-    touchstart: function(event) {},
-    touchend: function(event) {},
-    touchmove: function(event) {}
+    }
   };
   return box2d_game_screen;
 });

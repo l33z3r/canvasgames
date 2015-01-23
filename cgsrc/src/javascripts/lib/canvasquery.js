@@ -1,9 +1,9 @@
 /*     
-  Canvas Query 1.0.1
-  http://canvasquery.org
-  (c) 2012-2014 http://rezoner.net
-  Canvas Query may be freely distributed under the MIT license.
-*/
+ Canvas Query 1.12
+ http://canvasquery.org
+ (c) 2012-2014 http://rezoner.net
+ Canvas Query may be freely distributed under the MIT license.
+ */
 
 (function() {
 
@@ -131,8 +131,8 @@
       for (var j = 0; j < rgbPalette.length; j++) {
         var rgbVal = rgbPalette[j];
         var rDif = Math.abs(imgData[0] - rgbVal[0]),
-          gDif = Math.abs(imgData[1] - rgbVal[1]),
-          bDif = Math.abs(imgData[2] - rgbVal[2]);
+            gDif = Math.abs(imgData[1] - rgbVal[1]),
+            bDif = Math.abs(imgData[2] - rgbVal[2]);
         difList.push(rDif + gDif + bDif);
       }
 
@@ -206,7 +206,7 @@
 
       r /= 255, g /= 255, b /= 255;
       var max = Math.max(r, g, b),
-        min = Math.min(r, g, b);
+          min = Math.min(r, g, b);
       var h, s, l = (max + min) / 2;
 
       if (max == min) {
@@ -268,7 +268,7 @@
 
       r = r / 255, g = g / 255, b = b / 255;
       var max = Math.max(r, g, b),
-        min = Math.min(r, g, b);
+          min = Math.min(r, g, b);
       var h, s, v = max;
 
       var d = max - min;
@@ -404,7 +404,7 @@
       this.context.msImageSmoothingEnabled = cq.smoothing;
       this.context.imageSmoothingEnabled = cq.smoothing;
 
-      if (COCOONJS) CocoonJS.App.setAntialias(cq.smoothing);
+      if (COCOONJS) Cocoon.Utils.setAntialias(cq.smoothing);
     },
 
     appendTo: function(selector) {
@@ -435,8 +435,8 @@
       scale = scale || 1;
 
       return this.drawImage(
-        image, region[0], region[1], region[2], region[3],
-        x | 0, y | 0, region[2] * scale | 0, region[3] * scale | 0
+          image, region[0], region[1], region[2], region[3],
+          x | 0, y | 0, region[2] * scale | 0, region[3] * scale | 0
       );
     },
 
@@ -533,6 +533,7 @@
     },
 
     circle: function(x, y, r) {
+      this.context.beginPath();
       this.context.arc(x, y, r, 0, Math.PI * 2);
       return this;
     },
@@ -565,7 +566,7 @@
 
     resize: function(width, height) {
       var w = width,
-        h = height;
+          h = height;
 
       if (arguments.length === 1) {
         w = arguments[0] * this.canvas.width | 0;
@@ -688,8 +689,8 @@
         for (var j = 0; j < rgbPalette.length; j++) {
           var rgbVal = rgbPalette[j];
           var rDif = Math.abs(imgData.data[i] - rgbVal[0]),
-            gDif = Math.abs(imgData.data[i + 1] - rgbVal[1]),
-            bDif = Math.abs(imgData.data[i + 2] - rgbVal[2]);
+              gDif = Math.abs(imgData.data[i + 1] - rgbVal[1]),
+              bDif = Math.abs(imgData.data[i + 2] - rgbVal[2]);
           difList.push(rDif + gDif + bDif);
         }
 
@@ -711,12 +712,12 @@
 
         //imgData.data[i + 3] = imgData.data[i + 3] > 128 ? 255 : 0;
         /*
-        if (i % 3 === 0) {
-          imgData.data[i] -= cq.limitValue(imgData.data[i] - 50, 0, 255);
-          imgData.data[i + 1] -= cq.limitValue(imgData.data[i + 1] - 50, 0, 255);
-          imgData.data[i + 2] -= cq.limitValue(imgData.data[i + 2] - 50, 0, 255);
-        }
-        */
+         if (i % 3 === 0) {
+         imgData.data[i] -= cq.limitValue(imgData.data[i] - 50, 0, 255);
+         imgData.data[i + 1] -= cq.limitValue(imgData.data[i + 1] - 50, 0, 255);
+         imgData.data[i + 2] -= cq.limitValue(imgData.data[i + 2] - 50, 0, 255);
+         }
+         */
 
       }
 
@@ -744,6 +745,21 @@
 
     },
 
+    polygon: function(array) {
+
+      this.beginPath();
+
+      this.moveTo(array[0][0], array[0][1]);
+
+      for (var i = 1; i < array.length; i++) {
+        this.lineTo(array[i][0], array[i][1]);
+      }
+
+      this.closePath();
+
+      return this;
+    },
+
     colorToMask: function(color, inverted) {
       color = cq.color(color).toArray();
       var sourceData = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height);
@@ -752,8 +768,8 @@
       var mask = [];
 
       for (var i = 0, len = sourcePixels.length; i < len; i += 4) {
-        if (sourcePixels[i + 0] == color[0] && sourcePixels[i + 1] == color[1] && sourcePixels[i + 2] == color[2]) mask.push(inverted || false);
-        else mask.push(!inverted);
+        if (sourcePixels[i + 3] > 0) mask.push(inverted ? false : true);
+        else mask.push(inverted ? true : false);
       }
 
       return mask;
@@ -890,6 +906,31 @@
       return this;
     },
 
+    removeColor: function(color) {
+
+      color = cq.color(color);
+
+      var data = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height);
+      var pixels = data.data;
+
+      for (var x = 0; x < this.canvas.width; x++) {
+        for (var y = 0; y < this.canvas.height; y++) {
+          var i = (y * this.canvas.width + x) * 4;
+
+          if (pixels[i + 0] === color[0] && pixels[i + 1] === color[1] && pixels[i + 2] === color[2]) {
+            pixels[i + 3] = 0;
+          }
+
+
+        }
+      }
+
+      this.clear();
+      this.context.putImageData(data, 0, 0);
+
+      return this;
+    },
+
     outline: function() {
       var data = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height);
       var pixels = data.data;
@@ -952,7 +993,7 @@
       var data = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height);
       var pixels = data.data;
       var r, g, b, a, h, s, l, hsl = [],
-        newPixel = [];
+          newPixel = [];
 
       for (var i = 0, len = pixels.length; i < len; i += 4) {
         hsl = cq.rgbToHsl(pixels[i + 0], pixels[i + 1], pixels[i + 2]);
@@ -984,7 +1025,7 @@
       var data = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height);
       var pixels = data.data;
       var r, g, b, a, h, s, l, hsl = [],
-        newPixel = [];
+          newPixel = [];
 
       for (var i = 0, len = pixels.length; i < len; i += 4) {
         hsl = cq.rgbToHsl(pixels[i + 0], pixels[i + 1], pixels[i + 2]);
@@ -1030,7 +1071,7 @@
       var data = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height);
       var pixels = data.data;
       var r, g, b, a, h, s, l, hsl = [],
-        newPixel = [];
+          newPixel = [];
 
       for (var i = 0, len = pixels.length; i < len; i += 4) {
         pixels[i + 0] = 255 - pixels[i + 0];
@@ -1303,7 +1344,7 @@
       /* this is how it should work - but it does not */
 
       color = cq.color(color);
-      
+
       var pixel = this.createImageData(1, 1);
 
       pixel.data[0] = color[0];

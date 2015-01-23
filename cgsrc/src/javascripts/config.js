@@ -20,6 +20,9 @@ require.config({
     box2d: {
       exports: "Box2D"
     },
+    brain: {
+      exports: "brain"
+    },
     stats: {
       exports: "Stats"
     }
@@ -32,6 +35,7 @@ require.config({
     backbone: "bower_lib/backbone/backbone",
     pusher: "bower_lib/pusher/dist/pusher.min",
     canvasquery: "lib/canvasquery",
-    playground: "lib/playground"
+    playground: "lib/playground",
+    brain: "lib/brain"
   }
 });

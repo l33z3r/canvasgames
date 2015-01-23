@@ -14,6 +14,8 @@ require.config
 			exports: "Pusher"
 		box2d:
 			exports: "Box2D"
+		brain:
+			exports: "brain"
 		stats:
 			exports: "Stats"
 
@@ -26,3 +28,4 @@ require.config
 		pusher: "bower_lib/pusher/dist/pusher.min"
 		canvasquery: "lib/canvasquery"
 		playground: "lib/playground"
+		brain: "lib/brain"
