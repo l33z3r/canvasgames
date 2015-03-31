@@ -18,12 +18,19 @@ define ["game", "Settings", "./Settings", "util/PusherManager", "box2d"]
     ready: ->
 
     step: (delta) ->
-      turningVelocity = 2
+      distanceBetweenShips = @b2Math.Distance(@myGreenShip.GetPosition(), @theRedShip.GetPosition())
+      ljForce = @getLJPotential(distanceBetweenShips / Settings.scale)
+      console.log("LJForce: " + ljForce)
+
+      turningVelocity = 10
       speedVelocity = 5
 
+      #there are two methods of steering here, the commented out one should be used for LJPotential
       if game.keyboard.keys["right"]
-        @myGreenShip.ApplyForce(@myGreenShip.GetWorldVector(new @b2Vec2(-turningVelocity, 0)),  @myGreenShip.GetWorldPoint(new @b2Vec2(0, 1)))
+        @myGreenShip.ApplyTorque(turningVelocity)
+        #@myGreenShip.ApplyForce(@myGreenShip.GetWorldVector(new @b2Vec2(-turningVelocity, 0)),  @myGreenShip.GetWorldPoint(new @b2Vec2(0, 1)))
       else if game.keyboard.keys["left"]
+        @myGreenShip.ApplyTorque(-turningVelocity)
         @myGreenShip.ApplyForce(@myGreenShip.GetWorldVector(new @b2Vec2(turningVelocity, 0)), @myGreenShip.GetWorldPoint(new @b2Vec2(0, 1)))
 
       if game.keyboard.keys["up"]
@@ -94,6 +101,7 @@ define ["game", "Settings", "./Settings", "util/PusherManager", "box2d"]
     touchmove: (event) ->
 
     initB2Vars: ->
+      @b2Math = Box2D.Common.Math.b2Math
       @b2Vec2 = Box2D.Common.Math.b2Vec2
       @b2BodyDef = Box2D.Dynamics.b2BodyDef
       @b2Body = Box2D.Dynamics.b2Body
@@ -262,5 +270,18 @@ define ["game", "Settings", "./Settings", "util/PusherManager", "box2d"]
       wallBody.CreateFixture fixDef
 
       @walls.push(wallBody)
+
+    getLJPotential: (distanceBetweenObjects) ->
+      #attraction force
+      attractionForce = 2000
+      attractionAttenuation = 2
+
+      #repulsion force
+      repulsionForce = 4000
+      repulsionAttenuation = 3
+
+      force = -attractionForce/Math.pow(distanceBetweenObjects, attractionAttenuation) + repulsionForce/Math.pow(distanceBetweenObjects, repulsionAttenuation)
+
+      force
 
   return box2d_game_screen

@@ -14,12 +14,16 @@ define(["game", "Settings", "./Settings", "util/PusherManager", "box2d"], functi
     },
     ready: function() {},
     step: function(delta) {
-      var frameRate, positionIterations, speedVelocity, turningVelocity, velocityIterations;
-      turningVelocity = 2;
+      var distanceBetweenShips, frameRate, ljForce, positionIterations, speedVelocity, turningVelocity, velocityIterations;
+      distanceBetweenShips = this.b2Math.Distance(this.myGreenShip.GetPosition(), this.theRedShip.GetPosition());
+      ljForce = this.getLJPotential(distanceBetweenShips / Settings.scale);
+      console.log("LJForce: " + ljForce);
+      turningVelocity = 10;
       speedVelocity = 5;
       if (game.keyboard.keys["right"]) {
-        this.myGreenShip.ApplyForce(this.myGreenShip.GetWorldVector(new this.b2Vec2(-turningVelocity, 0)), this.myGreenShip.GetWorldPoint(new this.b2Vec2(0, 1)));
+        this.myGreenShip.ApplyTorque(turningVelocity);
       } else if (game.keyboard.keys["left"]) {
+        this.myGreenShip.ApplyTorque(-turningVelocity);
         this.myGreenShip.ApplyForce(this.myGreenShip.GetWorldVector(new this.b2Vec2(turningVelocity, 0)), this.myGreenShip.GetWorldPoint(new this.b2Vec2(0, 1)));
       }
       if (game.keyboard.keys["up"]) {
@@ -80,6 +84,7 @@ define(["game", "Settings", "./Settings", "util/PusherManager", "box2d"], functi
     touchend: function(event) {},
     touchmove: function(event) {},
     initB2Vars: function() {
+      this.b2Math = Box2D.Common.Math.b2Math;
       this.b2Vec2 = Box2D.Common.Math.b2Vec2;
       this.b2BodyDef = Box2D.Dynamics.b2BodyDef;
       this.b2Body = Box2D.Dynamics.b2Body;
@@ -203,6 +208,15 @@ define(["game", "Settings", "./Settings", "util/PusherManager", "box2d"], functi
       });
       wallBody.CreateFixture(fixDef);
       return this.walls.push(wallBody);
+    },
+    getLJPotential: function(distanceBetweenObjects) {
+      var attractionAttenuation, attractionForce, force, repulsionAttenuation, repulsionForce;
+      attractionForce = 2000;
+      attractionAttenuation = 2;
+      repulsionForce = 4000;
+      repulsionAttenuation = 3;
+      force = -attractionForce / Math.pow(distanceBetweenObjects, attractionAttenuation) + repulsionForce / Math.pow(distanceBetweenObjects, repulsionAttenuation);
+      return force;
     }
   };
   return box2d_game_screen;
