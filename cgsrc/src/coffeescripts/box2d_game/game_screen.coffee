@@ -4,7 +4,7 @@ define ["./Player", "game", "Settings", "./Settings", "./Gamevars", "util/Pusher
 		enter: ->
 			@player1 = new Player("Player 1")
 
-			@myGreenTriangle = null
+			@myGreenShip = null
 			@clearCanvas = true
 
 			new Motion().startWatching()
@@ -29,14 +29,14 @@ define ["./Player", "game", "Settings", "./Settings", "./Gamevars", "util/Pusher
 
 		step: (delta) ->
 			if game.keyboard.keys["right"]
-				@myGreenTriangle.ApplyForce(new @b2Vec2(1, 0),	@myGreenTriangle.GetWorldCenter())
+				@myGreenShip.ApplyForce(new @b2Vec2(1, 0),	@myGreenShip.GetWorldCenter())
 			else if game.keyboard.keys["left"]
-				@myGreenTriangle.ApplyForce(new @b2Vec2(-1, 0),	@myGreenTriangle.GetWorldCenter())
+				@myGreenShip.ApplyForce(new @b2Vec2(-1, 0),	@myGreenShip.GetWorldCenter())
 
 			if game.keyboard.keys["up"]
-				@myGreenTriangle.ApplyForce(new @b2Vec2(0, -1),	@myGreenTriangle.GetWorldCenter())
+				@myGreenShip.ApplyForce(new @b2Vec2(0, -1),	@myGreenShip.GetWorldCenter())
 			else if game.keyboard.keys["down"]
-				@myGreenTriangle.ApplyForce(new @b2Vec2(0, 1),	@myGreenTriangle.GetWorldCenter())
+				@myGreenShip.ApplyForce(new @b2Vec2(0, 1),	@myGreenShip.GetWorldCenter())
 
 			frameRate = 1/60
 			velocityIterations = 10
@@ -73,7 +73,7 @@ define ["./Player", "game", "Settings", "./Settings", "./Gamevars", "util/Pusher
 
 				game.layer.context.restore()
 
-				if body is @myGreenTriangle
+				if body is @myGreenShip
 					game.layer.context.save()
 
 					game.layer.context.translate(body.GetPosition().x * Settings.scale, body.GetPosition().y * Settings.scale)
@@ -127,7 +127,7 @@ define ["./Player", "game", "Settings", "./Settings", "./Gamevars", "util/Pusher
 				randomIndex = Math.floor(Math.random() * Object.keys(@bodiesMap).length)
 				body = @bodiesMap[randomIndex]
 
-				if body is @myGreenTriangle
+				if body is @myGreenShip
 					return
 
 				randomVecX = Math.floor(Math.random() * 10) - 5
@@ -189,8 +189,8 @@ define ["./Player", "game", "Settings", "./Settings", "./Gamevars", "util/Pusher
 					points: shapeDef
 
 				if bodyID is 0
-					userData["myGreenTriangle"] = true
-					@myGreenTriangle = nextBody
+					userData["myGreenShip"] = true
+					@myGreenShip = nextBody
 
 				nextBody.SetUserData userData
 

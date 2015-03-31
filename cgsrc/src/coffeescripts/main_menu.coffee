@@ -34,9 +34,14 @@ define ["require", "game", "Settings", "util/GameMenu", "util/GameMenuOption"], 
 				game.setState game.box2d_game_screen
 				#requestFullScreen()
 
+			simpleChaseFunc = ->
+				game.setState game.simple_chase_game_screen
+				#requestFullScreen()
+
 			items.push(new GameMenuOption("Pidgeons Dash", pidgeonDashFunc))
 			items.push(new GameMenuOption("Sketch Pad", sketchPadFunc))
 			items.push(new GameMenuOption("Box2D", box2dFunc))
+			items.push(new GameMenuOption("Simple Chase", simpleChaseFunc))
 
 			x = 0
 			y = Settings.gameHeight / (2 * 3.0)

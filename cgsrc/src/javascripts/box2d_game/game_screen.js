@@ -4,7 +4,7 @@ define(["./Player", "game", "Settings", "./Settings", "./Gamevars", "util/Pusher
     enter: function() {
       var gravity, sleepingBodies;
       this.player1 = new Player("Player 1");
-      this.myGreenTriangle = null;
+      this.myGreenShip = null;
       this.clearCanvas = true;
       new Motion().startWatching();
       this.initB2Vars();
@@ -22,14 +22,14 @@ define(["./Player", "game", "Settings", "./Settings", "./Gamevars", "util/Pusher
     step: function(delta) {
       var frameRate, positionIterations, velocityIterations;
       if (game.keyboard.keys["right"]) {
-        this.myGreenTriangle.ApplyForce(new this.b2Vec2(1, 0), this.myGreenTriangle.GetWorldCenter());
+        this.myGreenShip.ApplyForce(new this.b2Vec2(1, 0), this.myGreenShip.GetWorldCenter());
       } else if (game.keyboard.keys["left"]) {
-        this.myGreenTriangle.ApplyForce(new this.b2Vec2(-1, 0), this.myGreenTriangle.GetWorldCenter());
+        this.myGreenShip.ApplyForce(new this.b2Vec2(-1, 0), this.myGreenShip.GetWorldCenter());
       }
       if (game.keyboard.keys["up"]) {
-        this.myGreenTriangle.ApplyForce(new this.b2Vec2(0, -1), this.myGreenTriangle.GetWorldCenter());
+        this.myGreenShip.ApplyForce(new this.b2Vec2(0, -1), this.myGreenShip.GetWorldCenter());
       } else if (game.keyboard.keys["down"]) {
-        this.myGreenTriangle.ApplyForce(new this.b2Vec2(0, 1), this.myGreenTriangle.GetWorldCenter());
+        this.myGreenShip.ApplyForce(new this.b2Vec2(0, 1), this.myGreenShip.GetWorldCenter());
       }
       frameRate = 1 / 60;
       velocityIterations = 10;
@@ -62,7 +62,7 @@ define(["./Player", "game", "Settings", "./Settings", "./Gamevars", "util/Pusher
         bodyY = (body.GetPosition().y - 1.9) * Settings.scale;
         game.layer.drawRegion(this.player1.getImage(), this.player1.getNextSprite(), bodyX, bodyY);
         game.layer.context.restore();
-        if (body === this.myGreenTriangle) {
+        if (body === this.myGreenShip) {
           game.layer.context.save();
           game.layer.context.translate(body.GetPosition().x * Settings.scale, body.GetPosition().y * Settings.scale);
           game.layer.context.rotate(body.GetAngle());
@@ -99,7 +99,7 @@ define(["./Player", "game", "Settings", "./Settings", "./Gamevars", "util/Pusher
           var body, randomIndex, randomVecX, randomVecY;
           randomIndex = Math.floor(Math.random() * Object.keys(_this.bodiesMap).length);
           body = _this.bodiesMap[randomIndex];
-          if (body === _this.myGreenTriangle) {
+          if (body === _this.myGreenShip) {
             return;
           }
           randomVecX = Math.floor(Math.random() * 10) - 5;
@@ -154,8 +154,8 @@ define(["./Player", "game", "Settings", "./Settings", "./Gamevars", "util/Pusher
           points: shapeDef
         };
         if (bodyID === 0) {
-          userData["myGreenTriangle"] = true;
-          this.myGreenTriangle = nextBody;
+          userData["myGreenShip"] = true;
+          this.myGreenShip = nextBody;
         }
         nextBody.SetUserData(userData);
         this.bodiesMap[bodyID] = nextBody;
