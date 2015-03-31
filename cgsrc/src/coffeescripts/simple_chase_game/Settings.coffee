@@ -1,6 +1,6 @@
 define ->
 	Settings =
 		appBGColor: "#7EC0EE"
-		scale: 10
+		scale: 6
 
 	return Settings

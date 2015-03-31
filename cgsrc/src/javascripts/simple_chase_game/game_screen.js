@@ -9,22 +9,26 @@ define(["game", "Settings", "./Settings", "util/PusherManager", "box2d"], functi
       sleepingBodies = false;
       this.world = new this.b2World(gravity, sleepingBodies);
       this.createWalls();
-      this.myGreenShip = this.createBody("myGreenShip", "green");
-      return this.theRedShip = this.createBody("theRedShip", "red");
+      this.myGreenShip = this.createBody("myGreenShip", "green", "triangle");
+      return this.theRedShip = this.createBody("theRedShip", "red", "square");
     },
     ready: function() {},
     step: function(delta) {
-      var distanceBetweenShips, frameRate, ljForce, positionIterations, speedVelocity, turningVelocity, velocityIterations;
+      debugger;
+      var distanceBetweenShips, frameRate, ljForce, ljForceVector, positionIterations, speedVelocity, turningVelocity, vectorBetweenShips, velocityIterations;
+      vectorBetweenShips = this.b2Math.SubtractVV(this.myGreenShip.GetPosition(), this.theRedShip.GetPosition());
+      console.log("VecBetween: " + vectorBetweenShips.x + " " + vectorBetweenShips.y);
       distanceBetweenShips = this.b2Math.Distance(this.myGreenShip.GetPosition(), this.theRedShip.GetPosition());
       ljForce = this.getLJPotential(distanceBetweenShips / Settings.scale);
       console.log("LJForce: " + ljForce);
-      turningVelocity = 10;
-      speedVelocity = 5;
+      ljForceVector = this.b2Math.MulFV(-ljForce, vectorBetweenShips);
+      this.theRedShip.ApplyImpulse(ljForceVector, this.theRedShip.GetWorldPoint(new this.b2Vec2(0, 0)));
+      turningVelocity = 600;
+      speedVelocity = 500;
       if (game.keyboard.keys["right"]) {
         this.myGreenShip.ApplyTorque(turningVelocity);
       } else if (game.keyboard.keys["left"]) {
         this.myGreenShip.ApplyTorque(-turningVelocity);
-        this.myGreenShip.ApplyForce(this.myGreenShip.GetWorldVector(new this.b2Vec2(turningVelocity, 0)), this.myGreenShip.GetWorldPoint(new this.b2Vec2(0, 1)));
       }
       if (game.keyboard.keys["up"]) {
         this.myGreenShip.ApplyForce(this.myGreenShip.GetWorldVector(new this.b2Vec2(0, -speedVelocity)), this.myGreenShip.GetWorldCenter());
@@ -42,6 +46,7 @@ define(["game", "Settings", "./Settings", "util/PusherManager", "box2d"], functi
       game.layer.clear(Settings.appBGColor);
       this.drawBody(this.myGreenShip);
       this.drawBody(this.theRedShip);
+      this.drawPoint(this.theRedShip.GetWorldPoint(new this.b2Vec2(0, 0)));
       if (this.walls != null) {
         _ref = this.walls;
         _results = [];
@@ -75,6 +80,19 @@ define(["game", "Settings", "./Settings", "util/PusherManager", "box2d"], functi
       game.layer.context.fill();
       return game.layer.context.restore();
     },
+    drawPoint: function(point) {
+      game.layer.context.save();
+      game.layer.context.fillStyle = "white";
+      game.layer.context.beginPath();
+      game.layer.context.moveTo((point.x - 1) * Settings.scale, (point.y - 1) * Settings.scale);
+      game.layer.context.lineTo((point.x - 1) * Settings.scale, (point.y + 1) * Settings.scale);
+      game.layer.context.lineTo((point.x + 1) * Settings.scale, (point.y + 1) * Settings.scale);
+      game.layer.context.lineTo((point.x + 1) * Settings.scale, (point.y - 1) * Settings.scale);
+      game.layer.context.lineTo((point.x - 1) * Settings.scale, (point.y - 1) * Settings.scale);
+      game.layer.context.closePath();
+      game.layer.context.fill();
+      return game.layer.context.restore();
+    },
     mousedown: function(event) {},
     mouseup: function(event) {},
     mousemove: function(event) {},
@@ -97,16 +115,20 @@ define(["game", "Settings", "./Settings", "util/PusherManager", "box2d"], functi
       this.b2DebugDraw = Box2D.Dynamics.b2DebugDraw;
       return this.b2ContactListener = Box2D.Dynamics.b2ContactListener;
     },
-    createBody: function(bodyID, color) {
+    createBody: function(bodyID, color, shape) {
       var bodyDef, fixDef, nextBody, shapeDef, shapeVecs, userData, vec, vertex, _i, _len;
       fixDef = new this.b2FixtureDef;
-      fixDef.density = 0.2;
+      fixDef.density = 1;
       fixDef.friction = 0.5;
       fixDef.restitution = 0.2;
       bodyDef = new this.b2BodyDef;
       bodyDef.type = this.b2Body.b2_dynamicBody;
       bodyDef.bullet = true;
-      shapeDef = [[0, -3], [1, 1], [-1, 1]];
+      if (shape === "triangle") {
+        shapeDef = [[0, -10], [1, 1], [-1, 1]];
+      } else {
+        shapeDef = [[-2, -2], [2, -2], [2, 2], [-2, 2]];
+      }
       fixDef.shape = new this.b2PolygonShape;
       shapeVecs = [];
       for (_i = 0, _len = shapeDef.length; _i < _len; _i++) {
@@ -211,10 +233,10 @@ define(["game", "Settings", "./Settings", "util/PusherManager", "box2d"], functi
     },
     getLJPotential: function(distanceBetweenObjects) {
       var attractionAttenuation, attractionForce, force, repulsionAttenuation, repulsionForce;
-      attractionForce = 2000;
-      attractionAttenuation = 2;
-      repulsionForce = 4000;
-      repulsionAttenuation = 3;
+      attractionForce = 100 / Settings.scale;
+      attractionAttenuation = 3;
+      repulsionForce = 50 / Settings.scale;
+      repulsionAttenuation = 4;
       force = -attractionForce / Math.pow(distanceBetweenObjects, attractionAttenuation) + repulsionForce / Math.pow(distanceBetweenObjects, repulsionAttenuation);
       return force;
     }

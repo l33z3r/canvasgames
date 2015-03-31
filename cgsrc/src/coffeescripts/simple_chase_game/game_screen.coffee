@@ -12,18 +12,26 @@ define ["game", "Settings", "./Settings", "util/PusherManager", "box2d"]
 
       @createWalls()
 
-      @myGreenShip = @createBody("myGreenShip", "green")
-      @theRedShip = @createBody("theRedShip", "red")
+      @myGreenShip = @createBody("myGreenShip", "green", "triangle")
+      @theRedShip = @createBody("theRedShip", "red", "square")
 
     ready: ->
 
     step: (delta) ->
+      debugger
+      vectorBetweenShips = @b2Math.SubtractVV(@myGreenShip.GetPosition(), @theRedShip.GetPosition())
+      console.log("VecBetween: " + vectorBetweenShips.x + " " + vectorBetweenShips.y)
+
       distanceBetweenShips = @b2Math.Distance(@myGreenShip.GetPosition(), @theRedShip.GetPosition())
       ljForce = @getLJPotential(distanceBetweenShips / Settings.scale)
       console.log("LJForce: " + ljForce)
 
-      turningVelocity = 10
-      speedVelocity = 5
+      #apply the lj force on the red ship so that it follows the green ship
+      ljForceVector = @b2Math.MulFV(-ljForce, vectorBetweenShips)
+      @theRedShip.ApplyImpulse(ljForceVector,  @theRedShip.GetWorldPoint(new @b2Vec2(0, 0)))
+
+      turningVelocity = 600
+      speedVelocity = 500
 
       #there are two methods of steering here, the commented out one should be used for LJPotential
       if game.keyboard.keys["right"]
@@ -31,7 +39,7 @@ define ["game", "Settings", "./Settings", "util/PusherManager", "box2d"]
         #@myGreenShip.ApplyForce(@myGreenShip.GetWorldVector(new @b2Vec2(-turningVelocity, 0)),  @myGreenShip.GetWorldPoint(new @b2Vec2(0, 1)))
       else if game.keyboard.keys["left"]
         @myGreenShip.ApplyTorque(-turningVelocity)
-        @myGreenShip.ApplyForce(@myGreenShip.GetWorldVector(new @b2Vec2(turningVelocity, 0)), @myGreenShip.GetWorldPoint(new @b2Vec2(0, 1)))
+        #@myGreenShip.ApplyForce(@myGreenShip.GetWorldVector(new @b2Vec2(turningVelocity, 0)), @myGreenShip.GetWorldPoint(new @b2Vec2(0, 1)))
 
       if game.keyboard.keys["up"]
         @myGreenShip.ApplyForce(@myGreenShip.GetWorldVector(new @b2Vec2(0, -speedVelocity)),  @myGreenShip.GetWorldCenter())
@@ -50,6 +58,8 @@ define ["game", "Settings", "./Settings", "util/PusherManager", "box2d"]
 
       @drawBody(@myGreenShip)
       @drawBody(@theRedShip)
+
+      @drawPoint(@theRedShip.GetWorldPoint(new @b2Vec2(0, 0)))
 
       if @walls?
         for wall in @walls
@@ -79,6 +89,24 @@ define ["game", "Settings", "./Settings", "util/PusherManager", "box2d"]
         game.layer.context.lineTo((point[0] + body.GetPosition().x) * Settings.scale, (point[1] + body.GetPosition().y) * Settings.scale)
 
       game.layer.context.lineTo((body.GetPosition().x + body.GetUserData().points[0][0]) * Settings.scale, (body.GetPosition().y + body.GetUserData().points[0][1]) * Settings.scale);
+      game.layer.context.closePath()
+      game.layer.context.fill()
+
+      game.layer.context.restore()
+
+    drawPoint: (point) ->
+      game.layer.context.save()
+
+      game.layer.context.fillStyle = "white"
+
+      game.layer.context.beginPath()
+      game.layer.context.moveTo((point.x - 1) * Settings.scale, (point.y - 1) * Settings.scale)
+
+      game.layer.context.lineTo((point.x - 1) * Settings.scale, (point.y + 1) * Settings.scale)
+      game.layer.context.lineTo((point.x + 1) * Settings.scale, (point.y + 1) * Settings.scale)
+      game.layer.context.lineTo((point.x + 1) * Settings.scale, (point.y - 1) * Settings.scale)
+      game.layer.context.lineTo((point.x - 1) * Settings.scale, (point.y - 1) * Settings.scale)
+
       game.layer.context.closePath()
       game.layer.context.fill()
 
@@ -114,9 +142,9 @@ define ["game", "Settings", "./Settings", "util/PusherManager", "box2d"]
       @b2DebugDraw = Box2D.Dynamics.b2DebugDraw
       @b2ContactListener = Box2D.Dynamics.b2ContactListener
 
-    createBody: (bodyID, color) ->
+    createBody: (bodyID, color, shape) ->
       fixDef = new @b2FixtureDef
-      fixDef.density = 0.2
+      fixDef.density = 1
       fixDef.friction = 0.5
       fixDef.restitution = 0.2
 
@@ -124,7 +152,10 @@ define ["game", "Settings", "./Settings", "util/PusherManager", "box2d"]
       bodyDef.type = @b2Body.b2_dynamicBody
       bodyDef.bullet = true
 
-      shapeDef = [[0, -3], [1, 1], [-1, 1]]
+      if shape is "triangle"
+        shapeDef = [[0, -10], [1, 1], [-1, 1]]
+      else
+        shapeDef = [[-2, -2], [2, -2], [2, 2], [-2, 2]]
 
       fixDef.shape = new @b2PolygonShape
 
@@ -273,12 +304,12 @@ define ["game", "Settings", "./Settings", "util/PusherManager", "box2d"]
 
     getLJPotential: (distanceBetweenObjects) ->
       #attraction force
-      attractionForce = 2000
-      attractionAttenuation = 2
+      attractionForce = 100 / Settings.scale
+      attractionAttenuation = 3
 
       #repulsion force
-      repulsionForce = 4000
-      repulsionAttenuation = 3
+      repulsionForce = 50 / Settings.scale
+      repulsionAttenuation = 4
 
       force = -attractionForce/Math.pow(distanceBetweenObjects, attractionAttenuation) + repulsionForce/Math.pow(distanceBetweenObjects, repulsionAttenuation)
 
